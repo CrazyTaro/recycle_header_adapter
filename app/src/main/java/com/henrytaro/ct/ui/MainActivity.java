@@ -59,8 +59,8 @@ public class MainActivity extends Activity implements HeaderRecycleViewHolder.On
         }
         simpleAdapter = new SimpleRecycleAdapter<String>(this, new HeaderAdapterOption(), itemList, this);
         adapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(), groupList, headerMap, this);
-//        adapter.setHoldLayoutManager(adapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL));
-        adapter.setHoldLayoutManager(new LinearLayoutManager(this));
+        adapter.setHoldLayoutManager(adapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL));
+//        adapter.setHoldLayoutManager(new LinearLayoutManager(this));
         StickHeaderItemDecoration decoration = new StickHeaderItemDecoration(adapter);
         rv.setLayoutManager(adapter.getHoldLayoutManager());
         rv.addItemDecoration(decoration);

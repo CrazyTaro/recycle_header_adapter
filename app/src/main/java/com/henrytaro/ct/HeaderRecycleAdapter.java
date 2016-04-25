@@ -307,11 +307,6 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
     }
 
     @Override
-    public int getItemCountInOneLine() {
-        return mIsGridLayout && mLookup != null ? mLookup.getSpanCount() : 1;
-    }
-
-    @Override
     public int getHeaderViewID(int position, RecyclerView parent) {
         Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
         return mOptions.getLayoutId(mOptions.getHeaderViewType(p.x));

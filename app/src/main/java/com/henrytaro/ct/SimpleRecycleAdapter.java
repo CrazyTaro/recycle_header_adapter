@@ -46,12 +46,12 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
     public static abstract class SimpleAdapterOption implements IHeaderAdapterOption {
 
         @Override
-        public int getItemViewType(int position, boolean isShowHeader) {
+        public int getItemViewType(int position, int groupId, int childId, boolean isHeaderItem, boolean isShowHeader) {
             return getViewType(position);
         }
 
         @Override
-        public int getHeaderViewType(int groupId) {
+        public int getHeaderViewType(int groupId, int position) {
             return IHeaderAdapterOption.NO_HEADER_TYPE;
         }
 

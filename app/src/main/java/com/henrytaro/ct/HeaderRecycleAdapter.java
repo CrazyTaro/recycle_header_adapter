@@ -179,11 +179,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
     @Override
     public int getItemViewType(int position) {
         Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
-        if (isHeaderItem(p) && mIsShowHeader) {
-            return mOptions.getHeaderViewType(p.x);
-        } else {
-            return mOptions.getItemViewType(position, mIsShowHeader);
-        }
+        return mOptions.getItemViewType(position, p.x, p.y, isHeaderItem(p), mIsShowHeader);
     }
 
     @Override
@@ -217,6 +213,12 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
         return mCount;
     }
 
+    /**
+     * 判断当前item是否为headerView
+     *
+     * @param p item相关的分组及子元素信息
+     * @return
+     */
     private boolean isHeaderItem(Point p) {
         if (p != null && p.x >= 0 && p.y == -1) {
             return true;
@@ -309,7 +311,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
     @Override
     public int getHeaderViewID(int position, RecyclerView parent) {
         Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
-        return mOptions.getLayoutId(mOptions.getHeaderViewType(p.x));
+        return mOptions.getLayoutId(mOptions.getHeaderViewType(p.x, position));
     }
 
     @Override
@@ -403,23 +405,29 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      * 带头部的adapter配置接口
      */
     public interface IHeaderAdapterOption {
+        /**
+         * 不存在headerView类型,{@value Integer#MIN_VALUE}
+         */
         public static final int NO_HEADER_TYPE = Integer.MIN_VALUE;
 
-        public int getHeaderViewType(int groupId);
+        /**
+         * 获取headerView的类型
+         *
+         * @param groupId 分组类型
+         * @return
+         */
+        public int getHeaderViewType(int groupId, int position);
 
-        public int getItemViewType(int position, boolean isShowHeader);
-
-//        /**
-//         * 获取item的ViewType
-//         *
-//         * @param groupId      当前组ID,从0开始
-//         * @param childId      当前数据在该组中的索引ID,从0开始
-//         * @param position     当前项在所有数据中的索引ID,从0开始(包括头部item)
-//         * @param isHeaderItem     当前是项是否为header
-//         * @param isShowHeader 是否显示header,此参数来自Adapter
-//         * @return
-//         */
-//        public int getViewType(int groupId, int childId, int position, boolean isHeaderItem, boolean isShowHeader);
+        /**
+         * 获取普通View的类型
+         *
+         * @param position     位置
+         * @param groupId
+         * @param childId
+         * @param isHeaderItem
+         * @param isShowHeader 是否显示header  @return
+         */
+        public int getItemViewType(int position, int groupId, int childId, boolean isHeaderItem, boolean isShowHeader);
 
         /**
          * 根据ViewType获取加载的当前项layoutID

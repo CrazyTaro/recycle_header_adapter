@@ -1,0 +1,40 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context="com.henrytaro.ct.ui.MultiItemTypeActivity">
+    <item
+        android:id="@+id/action_multi_item_type"
+        android:orderInCategory="100"
+        android:title="多类型item"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_linear_layout"
+        android:orderInCategory="100"
+        android:title="线性布局LinearLayoutManager"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_grid_layout"
+        android:orderInCategory="100"
+        android:title="网格布局GridLayoutManager"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_stick_header"
+        android:orderInCategory="100"
+        android:title="固定头部"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_stick_header_bg"
+        android:orderInCategory="100"
+        android:title="固定头部带背景"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_simple_type"
+        android:orderInCategory="100"
+        android:title="无header布局"
+        app:showAsAction="never"/>
+</menu>

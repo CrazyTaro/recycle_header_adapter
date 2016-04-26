@@ -1,46 +1,45 @@
 package com.henrytaro.ct.ui;
 
-import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.util.ArrayMap;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.henrytaro.ct.*;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by taro on 16/4/19.
  */
-public class MainActivity extends Activity implements HeaderRecycleViewHolder.OnItemClickListener, SimpleRecycleViewHolder.OnItemClickListener {
-    RecyclerView rv = null;
-    List<List> groupList = null;
-    Map<Integer, String> headerMap = new ArrayMap<Integer, String>();
+public class MainActivity extends AppCompatActivity implements HeaderRecycleViewHolder.OnItemClickListener, SimpleRecycleViewHolder.OnItemClickListener {
+    RecyclerView mRvDisplay = null;
+    List<List> mGroupList = null;
+    Map<Integer, String> mHeaderMap = new ArrayMap<Integer, String>();
 
-    SimpleRecycleAdapter<String> simpleAdapter = null;
-    HeaderRecycleAdapter adapter = null;
+    SimpleRecycleAdapter<String> mSimpleAdapter = null;
+    HeaderRecycleAdapter mNormalAdapter = null;
+    HeaderRecycleAdapter mColorAdapter = null;
+    HeaderRecycleAdapter mMultiAdapter = null;
+    StickHeaderItemDecoration mStickDecoration = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        rv = (RecyclerView) findViewById(R.id.rv_test);
+        mRvDisplay = (RecyclerView) findViewById(R.id.rv_test);
 
-        groupList = new LinkedList<List>();
-        headerMap = new ArrayMap<Integer, String>();
+        mGroupList = new LinkedList<List>();
+        mHeaderMap = new ArrayMap<Integer, String>();
         int groupId = 0;
-        int count = groupId + 8;
-//        for (; groupId < count; groupId++) {
-//            groupList.add(null);
-//            headerMap.put(groupId, "title - " + groupId);
-//        }
+        int count = 0;
         count = groupId + 10;
         for (; groupId < count; groupId++) {
             int childCount = 8;
@@ -48,8 +47,8 @@ public class MainActivity extends Activity implements HeaderRecycleViewHolder.On
             for (int j = 0; j < childCount; j++) {
                 childList.add("child - " + j);
             }
-            groupList.add(childList);
-            headerMap.put(groupId, "title - " + groupId);
+            mGroupList.add(childList);
+            mHeaderMap.put(groupId, "title - " + groupId);
         }
 
 
@@ -57,21 +56,76 @@ public class MainActivity extends Activity implements HeaderRecycleViewHolder.On
         for (int i = 0; i < 5; i++) {
             itemList.add("single child - " + i);
         }
-        simpleAdapter = new SimpleRecycleAdapter<String>(this, new HeaderAdapterOption(), itemList, this);
-        adapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(), groupList, headerMap, this);
-        adapter.setHoldLayoutManager(adapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL));
-//        adapter.setHoldLayoutManager(new LinearLayoutManager(this));
-        StickHeaderItemDecoration decoration = new StickHeaderItemDecoration(adapter);
-        rv.setLayoutManager(adapter.getHoldLayoutManager());
-        rv.addItemDecoration(decoration);
-        rv.setPadding(50, 50, 50, 50);
-        rv.setAdapter(adapter);
+        mSimpleAdapter = new SimpleRecycleAdapter<String>(this, new HeaderAdapterOption(false, false), itemList, this);
+        mNormalAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, false), mGroupList, mHeaderMap, this);
+        mMultiAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(true, false), mGroupList, mHeaderMap, this);
+        mColorAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, true), mGroupList, mHeaderMap, this);
+//        mNormalAdapter.setHoldLayoutManager(mNormalAdapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL));
+        mNormalAdapter.setHoldLayoutManager(new LinearLayoutManager(this));
+        mStickDecoration = new StickHeaderItemDecoration(mNormalAdapter);
+        mRvDisplay.setLayoutManager(mNormalAdapter.getHoldLayoutManager());
+        mRvDisplay.addItemDecoration(mStickDecoration);
+        mRvDisplay.setPadding(50, 50, 50, 50);
+        mRvDisplay.setAdapter(mNormalAdapter);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_multi_item_type, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.action_simple_type:
+                mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
+                mRvDisplay.setAdapter(mSimpleAdapter);
+                mRvDisplay.removeItemDecoration(mStickDecoration);
+                mSimpleAdapter.notifyDataSetChanged();
+                break;
+            case R.id.action_multi_item_type:
+                mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
+                mRvDisplay.setAdapter(mMultiAdapter);
+                mRvDisplay.removeItemDecoration(mStickDecoration);
+                mNormalAdapter.notifyDataSetChanged();
+                break;
+            case R.id.action_linear_layout:
+                mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
+                mRvDisplay.setAdapter(mNormalAdapter);
+                mRvDisplay.removeItemDecoration(mStickDecoration);
+                mNormalAdapter.notifyDataSetChanged();
+                break;
+            case R.id.action_grid_layout:
+                mRvDisplay.setLayoutManager(mNormalAdapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL));
+                mRvDisplay.setAdapter(mNormalAdapter);
+                mRvDisplay.removeItemDecoration(mStickDecoration);
+                mNormalAdapter.notifyDataSetChanged();
+                break;
+            case R.id.action_stick_header:
+                mRvDisplay.setAdapter(mNormalAdapter);
+                mRvDisplay.addItemDecoration(mStickDecoration);
+                mNormalAdapter.notifyDataSetChanged();
+                break;
+            case R.id.action_stick_header_bg:
+                mRvDisplay.setAdapter(mColorAdapter);
+                mRvDisplay.addItemDecoration(mStickDecoration);
+                mNormalAdapter.notifyDataSetChanged();
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onItemClick(int groupId, int childId, int position, boolean isHeader, View rootView, HeaderRecycleViewHolder holder) {
-        adapter.setSpanCount((GridLayoutManager) adapter.getHoldLayoutManager(), 2);
-        adapter.notifyDataSetChanged();
+        mNormalAdapter.setSpanCount((GridLayoutManager) mNormalAdapter.getHoldLayoutManager(), 2);
+        mNormalAdapter.notifyDataSetChanged();
         Toast.makeText(this, "groud = " + groupId + "/child = " + childId + "/pos = " + position, Toast.LENGTH_SHORT).show();
     }
 
@@ -82,16 +136,44 @@ public class MainActivity extends Activity implements HeaderRecycleViewHolder.On
 
 
     private class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption {
+        private boolean mIsMultiType = false;
+        private boolean mIsSetBgColor = false;
 
-
-        @Override
-        public int getHeaderViewType(int groupId) {
-            return -1;
+        public HeaderAdapterOption(boolean isMultiType, boolean isSetBgColor) {
+            mIsMultiType = isMultiType;
+            mIsSetBgColor = isSetBgColor;
         }
 
         @Override
-        public int getItemViewType(int position, boolean isShowHeader) {
-            return 0;
+        public int getHeaderViewType(int groupId, int position) {
+            if (mIsMultiType) {
+                if (groupId > 6) {
+                    return -3;
+                } else if (groupId > 3) {
+                    return -1;
+                } else {
+                    return -2;
+                }
+            } else {
+                return -1;
+            }
+        }
+
+        @Override
+        public int getItemViewType(int position, int groupId, int childId, boolean isHeaderItem, boolean isShowHeader) {
+            if (isHeaderItem) {
+                return getHeaderViewType(groupId, position);
+            } else {
+                if (mIsMultiType) {
+                    if (childId > 3) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                } else {
+                    return 0;
+                }
+            }
         }
 
         @Override
@@ -100,8 +182,14 @@ public class MainActivity extends Activity implements HeaderRecycleViewHolder.On
                 case 0:
                 case NO_HEADER_TYPE:
                     return R.layout.item_content;
+                case 1:
+                    return R.layout.item_content_2;
                 case -1:
                     return R.layout.item_header;
+                case -2:
+                    return R.layout.item_header_2;
+                case -3:
+                    return R.layout.item_header_3;
                 default:
                     return R.layout.item_content;
             }
@@ -110,13 +198,23 @@ public class MainActivity extends Activity implements HeaderRecycleViewHolder.On
         @Override
         public void setHeaderHolder(int groupId, Object header, HeaderRecycleViewHolder holder) {
             TextView tv_header = holder.getView(R.id.tv_header);
-            tv_header.setText(header.toString());
+            if (tv_header != null) {
+                tv_header.setText(header.toString());
+            }
+
+            if (mIsSetBgColor) {
+                holder.getRootView().setBackgroundColor(Color.parseColor("#ff9900"));
+            }
         }
 
         @Override
         public void setViewHolder(int groupId, int childId, int position, Object itemData, HeaderRecycleViewHolder holder) {
             TextView tv_content = holder.getView(R.id.tv_content);
             tv_content.setText(itemData.toString());
+
+            if (mIsSetBgColor) {
+                holder.getRootView().setBackgroundColor(Color.parseColor("#99cc99"));
+            }
         }
     }
 }

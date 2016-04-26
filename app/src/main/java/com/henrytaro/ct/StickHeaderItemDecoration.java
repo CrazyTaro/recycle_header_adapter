@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 
 /**
  * Created by taro on 16/4/25.
+ * 参考来自: https://github.com/timehop/sticky-headers-recyclerview
  */
 public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
     //固定头部操作接口

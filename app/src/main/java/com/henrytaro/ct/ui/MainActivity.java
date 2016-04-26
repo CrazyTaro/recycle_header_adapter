@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         mNormalAdapter.setHoldLayoutManager(new LinearLayoutManager(this));
         mStickDecoration = new StickHeaderItemDecoration(mNormalAdapter);
         mRvDisplay.setLayoutManager(mNormalAdapter.getHoldLayoutManager());
-        mRvDisplay.addItemDecoration(mStickDecoration);
         mRvDisplay.setPadding(50, 50, 50, 50);
         mRvDisplay.setAdapter(mNormalAdapter);
     }
@@ -110,11 +109,15 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
                 break;
             case R.id.action_stick_header:
                 mRvDisplay.setAdapter(mNormalAdapter);
+                mRvDisplay.removeItemDecoration(mStickDecoration);
+                mStickDecoration = new StickHeaderItemDecoration(mNormalAdapter);
                 mRvDisplay.addItemDecoration(mStickDecoration);
                 mNormalAdapter.notifyDataSetChanged();
                 break;
             case R.id.action_stick_header_bg:
                 mRvDisplay.setAdapter(mColorAdapter);
+                mRvDisplay.removeItemDecoration(mStickDecoration);
+                mStickDecoration = new StickHeaderItemDecoration(mColorAdapter);
                 mRvDisplay.addItemDecoration(mStickDecoration);
                 mNormalAdapter.notifyDataSetChanged();
         }

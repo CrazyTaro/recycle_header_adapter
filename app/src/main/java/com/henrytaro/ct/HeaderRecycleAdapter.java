@@ -156,8 +156,6 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
         Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
         //设置当前项的组ID,与组内数据ID
         holder.setGroupIdAndChildId(p.x, p.y);
-        //清除上一个Holder的View缓存
-        holder.clearViewCache();
         Object holderData = null;
         if (isHeaderItem(p)) {
             //设置头部数据显示

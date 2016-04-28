@@ -19,7 +19,7 @@ public class HeaderGridLayoutManager extends GridLayoutManager {
      * @param adapter   关联的adapter
      */
     public HeaderGridLayoutManager(Context context, int spanCount, HeaderRecycleAdapter adapter) {
-        this(context, spanCount, GridLayoutManager.HORIZONTAL, false, adapter);
+        this(context, spanCount, GridLayoutManager.VERTICAL, false, adapter);
     }
 
     /**

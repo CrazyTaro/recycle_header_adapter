@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
     GridHeaderRecycleAdapter mGridHeaderAdapter = null;
     StickHeaderItemDecoration mStickDecoration = null;
 
+    LinearLayoutManager mLinearLayout = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +73,8 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         mGridHeaderAdapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL);
         //固定头部装饰
         mStickDecoration = new StickHeaderItemDecoration(mNormalAdapter);
-        mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
+        mLinearLayout = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        mRvDisplay.setLayoutManager(mLinearLayout);
         mRvDisplay.setPadding(50, 50, 50, 50);
         mRvDisplay.setAdapter(mNormalAdapter);
     }
@@ -91,20 +94,28 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         int id = item.getItemId();
 
         switch (id) {
+            case R.id.action_linear_horizontal:
+                int orientation = mLinearLayout.getOrientation();
+                if (orientation == LinearLayoutManager.HORIZONTAL) {
+                    mLinearLayout.setOrientation(LinearLayoutManager.VERTICAL);
+                } else {
+                    mLinearLayout.setOrientation(LinearLayoutManager.HORIZONTAL);
+                }
+                break;
             case R.id.action_simple_type:
-                mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
+                mRvDisplay.setLayoutManager(mLinearLayout);
                 mRvDisplay.setAdapter(mSimpleAdapter);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
                 mSimpleAdapter.notifyDataSetChanged();
                 break;
             case R.id.action_multi_item_type:
-                mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
+                mRvDisplay.setLayoutManager(mLinearLayout);
                 mRvDisplay.setAdapter(mMultiAdapter);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
                 mNormalAdapter.notifyDataSetChanged();
                 break;
             case R.id.action_linear_layout:
-                mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
+                mRvDisplay.setLayoutManager(mLinearLayout);
                 mRvDisplay.setAdapter(mNormalAdapter);
                 mNormalAdapter.setIsShowHeader(true);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
@@ -154,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
             case R.id.action_stick_header_bg:
                 //headerGridLayoutManger
                 mRvDisplay.setAdapter(mColorAdapter);
-                mRvDisplay.setLayoutManager(new HeaderGridLayoutManager(this, 3, mColorAdapter));
+                mRvDisplay.setLayoutManager(mLinearLayout);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
                 mStickDecoration = new StickHeaderItemDecoration(mColorAdapter);
                 mRvDisplay.addItemDecoration(mStickDecoration);
@@ -176,11 +187,11 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
 
     @Override
     public void onItemClick(int groupId, int childId, int position, boolean isHeader, View rootView, HeaderRecycleViewHolder holder) {
-        RecyclerView.LayoutManager layoutManager = mRvDisplay.getLayoutManager();
-        if (layoutManager instanceof GridLayoutManager) {
-            ((GridLayoutManager) layoutManager).setSpanCount(2);
-            mRvDisplay.getAdapter().notifyDataSetChanged();
-        }
+//        RecyclerView.LayoutManager layoutManager = mRvDisplay.getLayoutManager();
+//        if (layoutManager instanceof GridLayoutManager) {
+//            ((GridLayoutManager) layoutManager).setSpanCount(2);
+//            mRvDisplay.getAdapter().notifyDataSetChanged();
+//        }
         Toast.makeText(this, "groud = " + groupId + "/child = " + childId + "/pos = " + position, Toast.LENGTH_SHORT).show();
     }
 

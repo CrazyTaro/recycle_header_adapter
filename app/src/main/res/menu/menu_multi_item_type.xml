@@ -2,6 +2,12 @@
       xmlns:app="http://schemas.android.com/apk/res-auto"
       xmlns:tools="http://schemas.android.com/tools"
       tools:context="com.henrytaro.ct.ui.MultiItemTypeActivity">
+
+    <item
+        android:id="@+id/action_linear_horizontal"
+        android:orderInCategory="100"
+        android:title="线性布局横竖向切换"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/action_multi_item_type"
         android:orderInCategory="100"

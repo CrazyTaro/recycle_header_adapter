@@ -1,94 +1,72 @@
 package com.henrytaro.ct;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.widget.GridLayoutManager;
-import android.util.AttributeSet;
 
 import java.util.List;
 
 /**
- * Created by taro on 16/4/21.
+ * Created by taro on 16/4/28.
  */
 public class HeaderGridLayoutManager extends GridLayoutManager {
-    private boolean mIsShowHeader = true;
-    private List<Integer> mEachGroupCountList = null;
     private HeaderSpanSizeLookup mLookup = null;
 
-    public HeaderGridLayoutManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
+    /**
+     * 创建适用于头部显示的gridLayoutManager
+     *
+     * @param context
+     * @param spanCount 网格列数
+     * @param adapter   关联的adapter
+     */
+    public HeaderGridLayoutManager(Context context, int spanCount, HeaderRecycleAdapter adapter) {
+        this(context, spanCount, GridLayoutManager.HORIZONTAL, false, adapter);
     }
 
-    public HeaderGridLayoutManager(Context context, int spanCount, List<Integer> eachGroupCountList) {
-        this(context, spanCount, GridLayoutManager.VERTICAL, false, eachGroupCountList);
-    }
-
-    public HeaderGridLayoutManager(Context context, int spanCount, int orientation, boolean reverseLayout, List<Integer> eachGroupCountList) {
+    /**
+     * 创建适用于头部显示的gridLayoutManager
+     *
+     * @param context
+     * @param spanCount     网格列数
+     * @param orientation   方向
+     * @param reverseLayout 是否从尾到头加载layout
+     * @param adapter       关联的adapter
+     */
+    public HeaderGridLayoutManager(Context context, int spanCount, int orientation, boolean reverseLayout, HeaderRecycleAdapter adapter) {
         super(context, spanCount, orientation, reverseLayout);
-        if (mLookup == null) {
-            mLookup = new HeaderSpanSizeLookup(this.getSpanCount(), eachGroupCountList, mIsShowHeader);
-        } else {
-            mLookup.setParams(this.getSpanCount(), eachGroupCountList);
+        if (adapter == null) {
+            throw new RuntimeException("headerRecycleAdapter can not be null");
         }
+        if (mLookup == null) {
+            mLookup = new HeaderSpanSizeLookup(adapter, spanCount);
+        }
+        this.setAdapter(adapter);
         this.setSpanSizeLookup(mLookup);
+    }
+
+    /**
+     * 设置关联的adapter
+     *
+     * @param adapter
+     * @return
+     */
+    public boolean setAdapter(HeaderRecycleAdapter adapter) {
+        return mLookup.setAdapter(adapter);
+    }
+
+    @Override
+    public void setSpanSizeLookup(SpanSizeLookup spanSizeLookup) {
+        if (spanSizeLookup instanceof HeaderSpanSizeLookup) {
+            super.setSpanSizeLookup(spanSizeLookup);
+        } else {
+            throw new RuntimeException("spanSizeLookup must be headerSpanSizeLookup");
+        }
     }
 
     @Override
     public void setSpanCount(int spanCount) {
         super.setSpanCount(spanCount);
-        mLookup.setParams(this.getSpanCount(), mEachGroupCountList);
-    }
-
-    public void setIsShowHeader(boolean isShowHeader) {
-        mIsShowHeader = isShowHeader;
-        mLookup.setIsShowHeader(isShowHeader);
-    }
-
-    public void setEachGroupCountList(List<Integer> eachGroupCountList) {
-        mLookup.setParams(this.getSpanCount(), eachGroupCountList);
-    }
-
-
-    public static class HeaderSpanSizeLookup extends GridLayoutManager.SpanSizeLookup {
-        private List<Integer> mEachGroupCountList = null;
-        private int mSpanCount = 0;
-        private boolean mIsShowHeader = true;
-
-        public HeaderSpanSizeLookup(int spanCount, List<Integer> eachGroupCountList, boolean isShowHeader) {
-            this.mSpanCount = spanCount;
-            this.mIsShowHeader = isShowHeader;
-            this.mEachGroupCountList = eachGroupCountList;
-        }
-
-        public void setParams(int spanCount, List<Integer> eachGroupCountList) {
-            this.mSpanCount = spanCount;
-            this.mEachGroupCountList = eachGroupCountList;
-        }
-
-        public void setIsShowHeader(boolean isShowHeader) {
-            this.mIsShowHeader = isShowHeader;
-        }
-
-        public int getSpanCount() {
-            return mSpanCount;
-        }
-
-        @Override
-        public int getSpanSize(int position) {
-            if (mEachGroupCountList != null) {
-                int groupEachLine = mIsShowHeader ? 1 : 0;
-                int childId = 0;
-                for (int groupCount : mEachGroupCountList) {
-                    childId = groupCount;
-                    position = position - groupEachLine - childId;
-                    //直到计算到当前position数据为负说明当前位置在此分组中
-                    if (position < 0) {
-                        childId += position;
-                        return childId < 0 ? (groupEachLine == 0 ? 1 : mSpanCount) : 1;
-                    }
-                }
-            }
-            return 1;
+        if (mLookup != null) {
+            mLookup.setSpanCount(spanCount);
         }
     }
 }

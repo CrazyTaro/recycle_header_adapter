@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.henrytaro.ct.*;
+import com.henrytaro.ct.other.GridHeaderRecycleAdapter;
 
 import java.util.*;
 
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
     HeaderRecycleAdapter mNormalAdapter = null;
     HeaderRecycleAdapter mColorAdapter = null;
     HeaderRecycleAdapter mMultiAdapter = null;
+    GridHeaderRecycleAdapter mGridHeaderAdapter = null;
     StickHeaderItemDecoration mStickDecoration = null;
 
     @Override
@@ -56,14 +58,20 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         for (int i = 0; i < 5; i++) {
             itemList.add("single child - " + i);
         }
+        //无头部普通adapter
         mSimpleAdapter = new SimpleRecycleAdapter<String>(this, new HeaderAdapterOption(false, false), itemList, this);
+        //item单类型带头部adapter
         mNormalAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, false), mGroupList, mHeaderMap, this);
+        //item多类型带头部adapter
         mMultiAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(true, false), mGroupList, mHeaderMap, this);
+        //item单类型带颜色头部adapter
         mColorAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, true), mGroupList, mHeaderMap, this);
-//        mNormalAdapter.setHoldLayoutManager(mNormalAdapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL));
-        mNormalAdapter.setHoldLayoutManager(new LinearLayoutManager(this));
+        //
+        mGridHeaderAdapter = new GridHeaderRecycleAdapter(this, new HeaderAdapterOption(false, false), mGroupList, mHeaderMap, this);
+        mGridHeaderAdapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL);
+        //固定头部装饰
         mStickDecoration = new StickHeaderItemDecoration(mNormalAdapter);
-        mRvDisplay.setLayoutManager(mNormalAdapter.getHoldLayoutManager());
+        mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
         mRvDisplay.setPadding(50, 50, 50, 50);
         mRvDisplay.setAdapter(mNormalAdapter);
     }
@@ -98,28 +106,69 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
             case R.id.action_linear_layout:
                 mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
                 mRvDisplay.setAdapter(mNormalAdapter);
+                mNormalAdapter.setIsShowHeader(true);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
                 mNormalAdapter.notifyDataSetChanged();
                 break;
-            case R.id.action_grid_layout:
-                mRvDisplay.setLayoutManager(mNormalAdapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL));
+            case R.id.action_grid_layout_no_header:
+                //以下两种方式都可以达到gridLayoutManager分组的目的,但是更推荐第一种方式;
+                //分组的根本在于使用了 重写了 SpanSizeLookup 类的抽象方法,如果要保持分组有效,请继承 HeaderSpanSizeLookup
+                //headerGridLayoutManger
+                mRvDisplay.setLayoutManager(new HeaderGridLayoutManager(this, 3, mNormalAdapter));
                 mRvDisplay.setAdapter(mNormalAdapter);
+                mNormalAdapter.setIsShowHeader(false);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
                 mNormalAdapter.notifyDataSetChanged();
+
+                //GridHeaderRecycleAdapter
+//                mRvDisplay.setLayoutManager(mGridHeaderAdapter.getUsingLayoutManager());
+//                mRvDisplay.setAdapter(mGridHeaderAdapter);
+//                mGridHeaderAdapter.setIsShowHeader(false);
+//                mRvDisplay.removeItemDecoration(mStickDecoration);
+//                mGridHeaderAdapter.notifyDataSetChanged();
+                break;
+            case R.id.action_grid_layout:
+                //headerGridLayoutManger
+                mRvDisplay.setLayoutManager(new HeaderGridLayoutManager(this, 3, mNormalAdapter));
+                mRvDisplay.setAdapter(mNormalAdapter);
+                mNormalAdapter.setIsShowHeader(true);
+                mRvDisplay.removeItemDecoration(mStickDecoration);
+                mNormalAdapter.notifyDataSetChanged();
+
+
+                //GridHeaderRecycleAdapter
+//                mRvDisplay.setLayoutManager(mGridHeaderAdapter.getUsingLayoutManager());
+//                mRvDisplay.setAdapter(mGridHeaderAdapter);
+//                mGridHeaderAdapter.setIsShowHeader(true);
+//                mRvDisplay.removeItemDecoration(mStickDecoration);
+//                mGridHeaderAdapter.notifyDataSetChanged();
                 break;
             case R.id.action_stick_header:
                 mRvDisplay.setAdapter(mNormalAdapter);
+                mNormalAdapter.setIsShowHeader(true);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
                 mStickDecoration = new StickHeaderItemDecoration(mNormalAdapter);
                 mRvDisplay.addItemDecoration(mStickDecoration);
                 mNormalAdapter.notifyDataSetChanged();
                 break;
             case R.id.action_stick_header_bg:
+                //headerGridLayoutManger
                 mRvDisplay.setAdapter(mColorAdapter);
+                mRvDisplay.setLayoutManager(new HeaderGridLayoutManager(this, 3, mColorAdapter));
                 mRvDisplay.removeItemDecoration(mStickDecoration);
                 mStickDecoration = new StickHeaderItemDecoration(mColorAdapter);
                 mRvDisplay.addItemDecoration(mStickDecoration);
-                mNormalAdapter.notifyDataSetChanged();
+                mColorAdapter.notifyDataSetChanged();
+
+                //GridHeaderRecycleAdapter
+//                mGridHeaderAdapter.setHeaderAdapterOption(new HeaderAdapterOption(false, true));
+//                mRvDisplay.setLayoutManager(mGridHeaderAdapter.getUsingLayoutManager());
+//                mRvDisplay.setAdapter(mGridHeaderAdapter);
+//                mGridHeaderAdapter.setIsShowHeader(true);
+//                mRvDisplay.removeItemDecoration(mStickDecoration);
+//                mStickDecoration = new StickHeaderItemDecoration(mColorAdapter);
+//                mRvDisplay.addItemDecoration(mStickDecoration);
+//                mGridHeaderAdapter.notifyDataSetChanged();
         }
 
         return super.onOptionsItemSelected(item);
@@ -127,8 +176,11 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
 
     @Override
     public void onItemClick(int groupId, int childId, int position, boolean isHeader, View rootView, HeaderRecycleViewHolder holder) {
-        mNormalAdapter.setSpanCount((GridLayoutManager) mNormalAdapter.getHoldLayoutManager(), 2);
-        mNormalAdapter.notifyDataSetChanged();
+        RecyclerView.LayoutManager layoutManager = mRvDisplay.getLayoutManager();
+        if (layoutManager instanceof GridLayoutManager) {
+            ((GridLayoutManager) layoutManager).setSpanCount(2);
+            mRvDisplay.getAdapter().notifyDataSetChanged();
+        }
         Toast.makeText(this, "groud = " + groupId + "/child = " + childId + "/pos = " + position, Toast.LENGTH_SHORT).show();
     }
 

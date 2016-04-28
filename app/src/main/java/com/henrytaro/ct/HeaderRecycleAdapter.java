@@ -2,7 +2,6 @@ package com.henrytaro.ct;
 
 import android.content.Context;
 import android.graphics.Point;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,19 +16,22 @@ import java.util.Map;
  */
 public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleViewHolder> implements StickHeaderItemDecoration.StickerHeaderHandler {
     //分组数据列表
-    private List<List> mGroupList;
-    private List<Integer> mEachGroupCountList;
+    protected List<List> mGroupList;
+    protected List<Integer> mEachGroupCountList;
     //头部数据
-    private Map<Integer, ? extends Object> mHeaderMap;
-    private Context mApplicationContext;
-    private IHeaderAdapterOption mOptions = null;
-    private HeaderRecycleViewHolder.OnItemClickListener mItemClickListener;
-    private HeaderSpanSizeLookup mLookup = null;
-    private RecyclerView.LayoutManager mLayoutManager = null;
+    protected Map<Integer, ? extends Object> mHeaderMap;
+    protected Context mApplicationContext;
+    protected IHeaderAdapterOption mOptions = null;
+    protected HeaderRecycleViewHolder.OnItemClickListener mItemClickListener;
+    private OnHeaderParamsUpdateListener mParamsUpdateListener = null;
 
-    private boolean mIsShowHeader = true;
-    private boolean mIsGridLayout = false;
-    private int mCount = 0;
+    protected boolean mIsShowHeader = true;
+    protected int mCount = 0;
+
+
+    public HeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List> groupList, Map<Integer, ? extends Object> headerMap) {
+        this(context, option, groupList, headerMap, null);
+    }
 
     /**
      * 创建可以显示分组头部的recycleAdapter,其中Context与option不可为空
@@ -38,7 +40,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      * @param option    分组头部需要的配置接口
      * @param groupList 分组数据
      * @param headerMap 分组头部匹配的Map
-     * @param listener  每项单击的回调事件
+     * @param listener  每项单击的回调事件,此处也可以不进行设置,在绑定view的时候再设置onClick事件
      */
     public HeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List> groupList, Map<Integer, ? extends Object> headerMap, HeaderRecycleViewHolder.OnItemClickListener listener) {
         if (context == null || option == null) {
@@ -52,39 +54,23 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
     }
 
     /**
-     * 设置使用的LayoutManager,当且仅当需要使用分组的GridLayoutManager时才使用此方法,否则不建议使用.
+     * 设置或者更新adapter的option
      *
-     * @param isGridLayout  是否使用GridLayoutManger
-     * @param layoutManager 用于设置的GridLayoutManager
-     * @return 返回参数layoutManager, 当layoutManager为null时, 将不会有任何设置
+     * @param option
      */
-    public GridLayoutManager setUsingLayoutManager(boolean isGridLayout, GridLayoutManager layoutManager) {
-        this.mIsGridLayout = isGridLayout && layoutManager != null;
-        if (mIsGridLayout) {
-            //创建或者设置分组头部占用空格的计算类
-            if (mLookup == null) {
-                mLookup = new HeaderSpanSizeLookup(layoutManager.getSpanCount(), mEachGroupCountList, mIsShowHeader);
-            } else {
-                mLookup.setParams(layoutManager.getSpanCount(), mEachGroupCountList);
-                mLookup.setIsShowHeader(mIsShowHeader);
-            }
-            layoutManager.setSpanSizeLookup(mLookup);
+    public void setHeaderAdapterOption(IHeaderAdapterOption option) {
+        if (option != null) {
+            this.mOptions = option;
         }
-        return layoutManager;
     }
 
     /**
-     * 创建一个用于显示分组头部的GridLayoutManager
+     * 设置header更新参数的监听接口,触发对应的更新事件时将回调此接口
      *
-     * @param context
-     * @param spanCount   列数
-     * @param orientation 方向,默认为竖向.{@link GridLayoutManager#VERTICAL}
-     * @return
+     * @param listener
      */
-    public GridLayoutManager createHeaderGridLayoutManager(Context context, int spanCount, int orientation) {
-        GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount, orientation, false);
-        this.setUsingLayoutManager(true, layoutManager);
-        return layoutManager;
+    public void setHeaderParamsUpdateListener(OnHeaderParamsUpdateListener listener) {
+        mParamsUpdateListener = listener;
     }
 
     /**
@@ -124,7 +110,10 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
         mEachGroupCountList = getEachGroupCountList(groupList);
         //更新数据总数,需要计算header数据在内
         updateCount(mEachGroupCountList, mIsShowHeader);
-        setUsingLayoutManager(mIsGridLayout, null);
+        if (mParamsUpdateListener != null) {
+            mParamsUpdateListener.updateGroupList(groupList);
+            mParamsUpdateListener.updateEachGroupCountList(mEachGroupCountList);
+        }
     }
 
     /**
@@ -133,42 +122,15 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      * @param isShowHeader
      */
     public void setIsShowHeader(boolean isShowHeader) {
-        mIsShowHeader = isShowHeader;
-        updateCount(mEachGroupCountList, isShowHeader);
-        setUsingLayoutManager(mIsGridLayout, null);
-    }
-
-    /**
-     * 设置spanCount
-     *
-     * @param layoutManager
-     * @param spanCount
-     */
-    public void setSpanCount(GridLayoutManager layoutManager, int spanCount) {
-        if (layoutManager != null) {
-            layoutManager.setSpanCount(spanCount);
+        if (mIsShowHeader != isShowHeader) {
+            updateCount(mEachGroupCountList, isShowHeader);
+            mIsShowHeader = isShowHeader;
+            if (mParamsUpdateListener != null) {
+                mParamsUpdateListener.updateIsShowHeader(isShowHeader);
+            }
         }
-        setUsingLayoutManager(mIsGridLayout, layoutManager);
     }
 
-    /**
-     * 设置保存的LayoutManager
-     *
-     * @param manager
-     */
-    public void setHoldLayoutManager(RecyclerView.LayoutManager manager) {
-        this.mLayoutManager = manager;
-    }
-
-    /**
-     * 获取保存的LayoutManager
-     *
-     * @param <T> 此方法会将Manager自动转换成需要的类型,但是必须确保使用的类型是正确的,否则会造成转换异常
-     * @return
-     */
-    public <T extends RecyclerView.LayoutManager> T getHoldLayoutManager() {
-        return (T) this.mLayoutManager;
-    }
 
     @Override
     public void onViewRecycled(HeaderRecycleViewHolder holder) {
@@ -219,7 +181,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      * @param p item相关的分组及子元素信息
      * @return
      */
-    private boolean isHeaderItem(Point p) {
+    protected boolean isHeaderItem(Point p) {
         if (p != null && p.x >= 0 && p.y == -1) {
             return true;
         } else {
@@ -233,7 +195,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      * @param position
      * @return
      */
-    private Point getGroupIdAndChildIdFromPosition(List<Integer> eachGroupCountList, int position, boolean isShowGroup) {
+    public Point getGroupIdAndChildIdFromPosition(List<Integer> eachGroupCountList, int position, boolean isShowGroup) {
         if (position < 0 || position >= mCount) {
             return new Point(-1, 0);
         }
@@ -267,7 +229,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      * @param eachGroupCountList 分组列表
      * @param isShowGroup        是否显示Header
      */
-    private void updateCount(List<Integer> eachGroupCountList, boolean isShowGroup) {
+    protected void updateCount(List<Integer> eachGroupCountList, boolean isShowGroup) {
         mCount = 0;
         int headerSize = 1;
         int groupEachLine = isShowGroup ? headerSize : 0;
@@ -276,6 +238,9 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
                 //若显示Header将Header添加到总数据量中,每一个Header占用一行
                 mCount += groupCount + groupEachLine;
             }
+        }
+        if (mParamsUpdateListener != null) {
+            mParamsUpdateListener.updateCount(mCount);
         }
     }
 
@@ -330,74 +295,6 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
             headerView.setTag(holder);
         }
         mOptions.setHeaderHolder(p.x, headerObj, holder);
-    }
-
-    /**
-     * 计算头部占用空格的类
-     */
-    public static class HeaderSpanSizeLookup extends GridLayoutManager.SpanSizeLookup {
-        private List<Integer> mEachGroupCountList = null;
-        private int mSpanCount = 0;
-        private boolean mIsShowHeader = true;
-
-        /**
-         * @param spanCount          网格列数
-         * @param eachGroupCountList 分组的数据量列表
-         * @param isShowHeader       是否显示头部
-         */
-        public HeaderSpanSizeLookup(int spanCount, List<Integer> eachGroupCountList, boolean isShowHeader) {
-            this.mSpanCount = spanCount;
-            this.mIsShowHeader = isShowHeader;
-            this.mEachGroupCountList = eachGroupCountList;
-        }
-
-        /**
-         * 设置参数,网格列数及分组数据量列表,此二值必须与实际显示的设置保持一致
-         *
-         * @param spanCount
-         * @param eachGroupCountList
-         */
-        public void setParams(int spanCount, List<Integer> eachGroupCountList) {
-            this.mSpanCount = spanCount;
-            this.mEachGroupCountList = eachGroupCountList;
-        }
-
-        /**
-         * 是否显示头部
-         *
-         * @param isShowHeader
-         */
-        public void setIsShowHeader(boolean isShowHeader) {
-            this.mIsShowHeader = isShowHeader;
-        }
-
-        /**
-         * 设置网格列数
-         *
-         * @return
-         */
-        public int getSpanCount() {
-            return mSpanCount;
-        }
-
-        @Override
-        public int getSpanSize(int position) {
-            if (mEachGroupCountList != null) {
-                int groupEachLine = mIsShowHeader ? 1 : 0;
-                int childId = 0;
-                for (int groupCount : mEachGroupCountList) {
-                    childId = groupCount;
-                    position = position - groupEachLine - childId;
-                    //直到计算到当前position数据为负说明当前位置在此分组中
-                    if (position < 0) {
-                        childId += position;
-                        //至少返回1列或者是整行的所有列数
-                        return childId < 0 ? (groupEachLine == 0 ? 1 : mSpanCount) : 1;
-                    }
-                }
-            }
-            return 1;
-        }
     }
 
 
@@ -458,4 +355,36 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
         public void setViewHolder(int groupId, int childId, int position, Object itemData, HeaderRecycleViewHolder holder);
     }
 
+    /**
+     * header参数更新的接口
+     */
+    public interface OnHeaderParamsUpdateListener {
+        /**
+         * 更新是否显示header
+         *
+         * @param isShowHeader
+         */
+        public void updateIsShowHeader(boolean isShowHeader);
+
+        /**
+         * 更新分组数据
+         *
+         * @param groupList
+         */
+        public void updateGroupList(List<List> groupList);
+
+        /**
+         * 更新分组数据量(指将每个分组中的数据量取出按顺序存放到一个list中,直接通过此list可以获取每组的数据量并进行,不需要遍历分组数据去list.size()获取每个分组的数据量)
+         *
+         * @param eachGroupCountList
+         */
+        public void updateEachGroupCountList(List<Integer> eachGroupCountList);
+
+        /**
+         * 更新item的总数,当显示header和不显示header时,此值会有变化
+         *
+         * @param count
+         */
+        public void updateCount(int count);
+    }
 }

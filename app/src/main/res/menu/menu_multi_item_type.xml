@@ -21,6 +21,12 @@
         app:showAsAction="never"/>
 
     <item
+        android:id="@+id/action_grid_layout_no_header"
+        android:orderInCategory="100"
+        android:title="网格布局GridLayoutManager不带header"
+        app:showAsAction="never"/>
+
+    <item
         android:id="@+id/action_stick_header"
         android:orderInCategory="100"
         android:title="固定头部"

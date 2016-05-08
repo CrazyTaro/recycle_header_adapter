@@ -14,9 +14,9 @@ import java.util.Map;
 /**
  * Created by taro on 16/4/19.
  */
-public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleViewHolder> implements StickHeaderItemDecoration.StickerHeaderHandler {
+public class HeaderRecycleAdapter<T> extends RecyclerView.Adapter<HeaderRecycleViewHolder> implements StickHeaderItemDecoration.StickerHeaderHandler {
     //分组数据列表
-    protected List<List> mGroupList;
+    protected List<List<T>> mGroupList;
     protected List<Integer> mEachGroupCountList;
     //头部数据
     protected Map<Integer, ? extends Object> mHeaderMap;
@@ -29,7 +29,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
     protected int mCount = 0;
 
 
-    public HeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List> groupList, Map<Integer, ? extends Object> headerMap) {
+    public HeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List<T>> groupList, Map<Integer, ? extends Object> headerMap) {
         this(context, option, groupList, headerMap, null);
     }
 
@@ -42,7 +42,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      * @param headerMap 分组头部匹配的Map
      * @param listener  每项单击的回调事件,此处也可以不进行设置,在绑定view的时候再设置onClick事件
      */
-    public HeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List> groupList, Map<Integer, ? extends Object> headerMap, HeaderRecycleViewHolder.OnItemClickListener listener) {
+    public HeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List<T>> groupList, Map<Integer, ? extends Object> headerMap, HeaderRecycleViewHolder.OnItemClickListener listener) {
         if (context == null || option == null) {
             throw new RuntimeException("context and option can not be null");
         }
@@ -96,7 +96,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      *
      * @return
      */
-    public List<List> getGroupList() {
+    public List<List<T>> getGroupList() {
         return mGroupList;
     }
 
@@ -105,7 +105,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      *
      * @param groupList
      */
-    public void setGroupList(List<List> groupList) {
+    public void setGroupList(List<List<T>> groupList) {
         mGroupList = groupList;
         mEachGroupCountList = getEachGroupCountList(groupList);
         //更新数据总数,需要计算header数据在内
@@ -248,7 +248,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
      * @param groupList 分组数据列表
      * @return 返回分组数据量列表, 每一项都对应分组列表中的每一组的数据量
      */
-    public static List<Integer> getEachGroupCountList(List<List> groupList) {
+    public List<Integer> getEachGroupCountList(List<List<T>> groupList) {
         if (groupList == null) {
             return null;
         } else {
@@ -298,15 +298,17 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
 
     /**
      * 带头部的adapter配置接口
+     * 其中参数T为每个item对应的设置的数据类型
+     * 参数H为每个header对应设置的数据类型
      */
-    public interface IHeaderAdapterOption {
+    public interface IHeaderAdapterOption<T, H> {
         /**
          * 不存在headerView类型,{@value Integer#MIN_VALUE}
          */
         public static final int NO_HEADER_TYPE = Integer.MIN_VALUE;
 
         /**
-         * 获取headerView的类型
+         * 获取headerView的类型,headerView类型专用
          *
          * @param groupId 分组类型
          * @return
@@ -314,7 +316,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
         public int getHeaderViewType(int groupId, int position);
 
         /**
-         * 获取普通View的类型
+         * 获取View的类型
          *
          * @param position     位置
          * @param groupId
@@ -339,7 +341,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
          * @param header  当前Header数据,来自于Map
          * @param holder
          */
-        public void setHeaderHolder(int groupId, Object header, HeaderRecycleViewHolder holder);
+        public void setHeaderHolder(int groupId, H header, HeaderRecycleViewHolder holder);
 
         /**
          * 设置子项ViewHolder
@@ -350,13 +352,13 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
          * @param itemData
          * @param holder
          */
-        public void setViewHolder(int groupId, int childId, int position, Object itemData, HeaderRecycleViewHolder holder);
+        public void setViewHolder(int groupId, int childId, int position, T itemData, HeaderRecycleViewHolder holder);
     }
 
     /**
      * header参数更新的接口
      */
-    public interface OnHeaderParamsUpdateListener {
+    public interface OnHeaderParamsUpdateListener<T> {
         /**
          * 更新是否显示header
          *
@@ -369,7 +371,7 @@ public class HeaderRecycleAdapter extends RecyclerView.Adapter<HeaderRecycleView
          *
          * @param groupList
          */
-        public void updateGroupList(List<List> groupList);
+        public void updateGroupList(List<List<T>> groupList);
 
         /**
          * 更新分组数据量(指将每个分组中的数据量取出按顺序存放到一个list中,直接通过此list可以获取每组的数据量并进行,不需要遍历分组数据去list.size()获取每个分组的数据量)

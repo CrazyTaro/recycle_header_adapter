@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.henrytaro.ct.*;
 import com.henrytaro.ct.other.GridHeaderRecycleAdapter;
 
@@ -20,7 +21,7 @@ import java.util.*;
 /**
  * Created by taro on 16/4/19.
  */
-public class MainActivity extends AppCompatActivity implements HeaderRecycleViewHolder.OnItemClickListener, SimpleRecycleViewHolder.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements HeaderRecycleViewHolder.OnItemClickListener, SimpleRecycleAdapter.OnSimpleItemClickListener {
     RecyclerView mRvDisplay = null;
     List<List> mGroupList = null;
     Map<Integer, String> mHeaderMap = new ArrayMap<Integer, String>();
@@ -60,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         for (int i = 0; i < 5; i++) {
             itemList.add("single child - " + i);
         }
+
+
         //无头部普通adapter
         mSimpleAdapter = new SimpleRecycleAdapter<String>(this, new HeaderAdapterOption(false, false), itemList, this);
         //item单类型带头部adapter
@@ -196,12 +199,12 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
     }
 
     @Override
-    public void onItemClickListener(int position, View rootView, SimpleRecycleViewHolder holder) {
+    public void onSimpleItemClick(int position, View rootView, HeaderRecycleViewHolder holder) {
         Toast.makeText(this, "/pos = " + position, Toast.LENGTH_SHORT).show();
     }
 
 
-    private class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption {
+    private class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption<String,String> {
         private boolean mIsMultiType = false;
         private boolean mIsSetBgColor = false;
 
@@ -262,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         }
 
         @Override
-        public void setHeaderHolder(int groupId, Object header, HeaderRecycleViewHolder holder) {
+        public void setHeaderHolder(int groupId, String header, HeaderRecycleViewHolder holder) {
             TextView tv_header = holder.getView(R.id.tv_header);
             if (tv_header != null) {
                 tv_header.setText(header.toString());
@@ -274,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         }
 
         @Override
-        public void setViewHolder(int groupId, int childId, int position, Object itemData, HeaderRecycleViewHolder holder) {
+        public void setViewHolder(int groupId, int childId, int position, String itemData, HeaderRecycleViewHolder holder) {
             TextView tv_content = holder.getView(R.id.tv_content);
             tv_content.setText(itemData.toString());
 

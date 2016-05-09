@@ -1,7 +1,6 @@
-package com.henrytaro.ct;
+package com.taro.headerrecycle;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.support.v4.util.SparseArrayCompat;

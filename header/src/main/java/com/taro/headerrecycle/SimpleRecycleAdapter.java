@@ -1,9 +1,10 @@
-package com.henrytaro.ct;
+package com.taro.headerrecycle;
 
 import android.content.Context;
 import android.view.View;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by taro on 16/4/19.

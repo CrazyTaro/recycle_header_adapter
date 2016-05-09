@@ -3,9 +3,6 @@ package com.henrytaro.ct.other;
 import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import com.henrytaro.ct.HeaderRecycleAdapter;
-import com.henrytaro.ct.HeaderRecycleViewHolder;
-import com.henrytaro.ct.HeaderSpanSizeLookup;
 
 import java.util.List;
 import java.util.Map;

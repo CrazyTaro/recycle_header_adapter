@@ -1,9 +1,7 @@
-package com.henrytaro.ct;
+package com.taro.headerrecycle;
 
 import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
-
-import java.util.List;
 
 /**
  * Created by taro on 16/4/28.

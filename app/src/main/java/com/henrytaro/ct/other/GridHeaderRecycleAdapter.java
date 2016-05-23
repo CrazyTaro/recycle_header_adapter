@@ -4,13 +4,17 @@ import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import com.taro.headerrecycle.HeaderRecycleAdapter;
+import com.taro.headerrecycle.HeaderRecycleViewHolder;
+import com.taro.headerrecycle.HeaderSpanSizeLookup;
+
 import java.util.List;
 import java.util.Map;
 
 /**
  * Created by taro on 16/4/28.
  */
-public class GridHeaderRecycleAdapter extends HeaderRecycleAdapter {
+public class GridHeaderRecycleAdapter<T> extends HeaderRecycleAdapter<T> {
     private HeaderSpanSizeLookup mLookup = null;
     private boolean mIsGridLayout = false;
     private RecyclerView.LayoutManager mLayoutManager = null;
@@ -24,21 +28,8 @@ public class GridHeaderRecycleAdapter extends HeaderRecycleAdapter {
      * @param groupList 分组数据
      * @param headerMap 头部信息
      */
-    public GridHeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List> groupList, Map<Integer, ? extends Object> headerMap) {
-        this(context, option, groupList, headerMap, null);
-    }
-
-    /**
-     * 创建可以显示分组头部的recycleAdapter,其中Context与option不可为空
-     *
-     * @param context
-     * @param option    分组头部需要的配置接口
-     * @param groupList 分组数据
-     * @param headerMap 分组头部匹配的Map
-     * @param listener  每项单击的回调事件,此处也可以不进行设置,在绑定view的时候再设置onClick事件
-     */
-    public GridHeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List> groupList, Map<Integer, ? extends Object> headerMap, HeaderRecycleViewHolder.OnItemClickListener listener) {
-        super(context, option, groupList, headerMap, listener);
+    public GridHeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List<T>> groupList, Map<Integer, ? extends Object> headerMap) {
+        super(context, option, groupList, headerMap);
     }
 
     /**
@@ -82,7 +73,7 @@ public class GridHeaderRecycleAdapter extends HeaderRecycleAdapter {
     }
 
     @Override
-    public void setGroupList(List<List> groupList) {
+    public void setGroupList(List<List<T>> groupList) {
         super.setGroupList(groupList);
         setUsingLayoutManager(mIsGridLayout, this.getUsingLayoutManager());
     }

@@ -32,7 +32,7 @@ public class HeaderGridLayoutManager extends GridLayoutManager {
     public HeaderGridLayoutManager(Context context, int spanCount, int orientation, boolean reverseLayout, HeaderRecycleAdapter adapter) {
         super(context, spanCount, orientation, reverseLayout);
         if (adapter == null) {
-            throw new RuntimeException("headerRecycleAdapter can not be null");
+            throw new NullPointerException("headerRecycleAdapter can not be null");
         }
         if (mLookup == null) {
             mLookup = new HeaderSpanSizeLookup(adapter, spanCount);

@@ -16,7 +16,7 @@ import android.view.ViewGroup;
  */
 public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
     //固定头部操作接口
-    private StickerHeaderHandler mHeaderHandler = null;
+    private IStickerHeaderDecoration mHeaderHandler = null;
     //缓存View
     private SparseArrayCompat<View> mViewCacheMap = null;
     //全局得胜的rect
@@ -32,7 +32,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
      *
      * @param handler 固定头部操作接口
      */
-    public StickHeaderItemDecoration(StickerHeaderHandler handler) {
+    public StickHeaderItemDecoration(IStickerHeaderDecoration handler) {
         mHeaderHandler = handler;
         mViewCacheMap = new SparseArrayCompat<View>();
         mOutRect = new Rect();
@@ -386,7 +386,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
     /**
      * 固定头部操作接口
      */
-    public interface StickerHeaderHandler {
+    public interface IStickerHeaderDecoration {
         /**
          * 判断当前位置的item是否为一个header
          *

@@ -1,7 +1,6 @@
 package com.taro.headerrecycle;
 
 import android.content.Context;
-import android.view.View;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -9,26 +8,8 @@ import java.util.List;
 /**
  * Created by taro on 16/4/19.
  */
-public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T> implements HeaderRecycleViewHolder.OnItemClickListener {
-    private OnSimpleItemClickListener mItemClickListener = null;
+public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T> {
     private List<T> mItemList = null;
-
-    /**
-     * 创建简单的不带header的adapter
-     *
-     * @param context
-     * @param option   item加载配置接口
-     * @param itemList item数据列表
-     * @param listener item单击事件监听接口
-     */
-    public SimpleRecycleAdapter(Context context, IHeaderAdapterOption option, List<T> itemList, OnSimpleItemClickListener listener) {
-        super(context, option, null, null, null);
-        mItemClickListener = listener;
-        mItemList = itemList;
-
-        this.setIsShowHeader(false);
-        this.setItemList(itemList);
-    }
 
     /**
      * 创建简单的不带header的adapter
@@ -38,7 +19,11 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T> implements 
      * @param itemList item数据列表
      */
     public SimpleRecycleAdapter(Context context, IHeaderAdapterOption option, List<T> itemList) {
-        this(context, option, itemList, null);
+        super(context, option, null, null);
+        mItemList = itemList;
+
+        this.setIsShowHeader(false);
+        this.setItemList(itemList);
     }
 
     /**
@@ -67,15 +52,6 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T> implements 
     }
 
     /**
-     * 设置item单击响应事件
-     *
-     * @param listener
-     */
-    public void setOnSimpleItemClickListener(OnSimpleItemClickListener listener) {
-        mItemClickListener = listener;
-    }
-
-    /**
      * 重写了父类的设置头部接口,永远都不会有头部
      *
      * @param isShowHeader
@@ -83,27 +59,6 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T> implements 
     @Override
     public void setIsShowHeader(boolean isShowHeader) {
         super.setIsShowHeader(false);
-    }
-
-    @Override
-    public void onItemClick(int groupId, int childId, int position, boolean isHeader, View rootView, HeaderRecycleViewHolder holder) {
-        if (mItemClickListener != null) {
-            mItemClickListener.onSimpleItemClick(position, rootView, holder);
-        }
-    }
-
-    /**
-     * 简单版的item单击回调事件
-     */
-    public interface OnSimpleItemClickListener {
-        /**
-         * 简单的item(不带header)被单击回调事件
-         *
-         * @param position 位置
-         * @param rootView item根View
-         * @param holder   viewholder
-         */
-        public void onSimpleItemClick(int position, View rootView, HeaderRecycleViewHolder holder);
     }
 
     /**

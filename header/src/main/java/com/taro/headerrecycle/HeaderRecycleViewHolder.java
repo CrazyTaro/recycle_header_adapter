@@ -7,35 +7,40 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.Map;
+
 /**
  * Created by taro on 16/4/19.
  */
 public class HeaderRecycleViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-    private OnItemClickListener mItemClickListener;
+    /**
+     * 根布局的ID,使用0
+     */
+    public static final int ROOT_VIEW_ID = 0;
+
     private int mGroupId = -1;
     private int mChildId = -1;
     private View mRootView;
+    private OnItemClickListener mRootViewClickListener = null;
     //当前项是否可以响应单击事件
     private boolean mIsClickEnabled = true;
-    private RecyclerView.Adapter mParentAdapter = null;
+    private HeaderRecycleAdapter mParentAdapter = null;
     //View缓存
     private ArrayMap<Integer, View> mViewHolder = null;
+
+    private Map<Integer, OnItemClickListener> mItemClickMap = null;
 
     /**
      * 带adapter的holder,推荐使用此方法(很常会用到adapter)
      *
      * @param adapter
      * @param itemView holder的rootView
-     * @param listener 监听事件
      */
-    public HeaderRecycleViewHolder(RecyclerView.Adapter adapter, View itemView, OnItemClickListener listener) {
+    public HeaderRecycleViewHolder(HeaderRecycleAdapter adapter, View itemView) {
         super(itemView);
         mRootView = itemView;
-        mItemClickListener = listener;
         mParentAdapter = adapter;
         mViewHolder = new ArrayMap<Integer, View>();
-
-        itemView.setOnClickListener(this);
     }
 
     /**
@@ -152,21 +157,90 @@ public class HeaderRecycleViewHolder extends RecyclerView.ViewHolder implements 
     }
 
     /**
-     * 设置Holder的监听事件
+     * 注册rootView的单击响应事件,注册了rootView的响应事件时,将不会响应其子控件的单击事件
      *
      * @param listener
      */
-    public void setOnItemClickListener(OnItemClickListener listener) {
-        mItemClickListener = listener;
+    public void registerRootViewItemClickListener(OnItemClickListener listener) {
+        mRootViewClickListener = listener;
+        mRootView.setOnClickListener(this);
     }
 
     /**
-     * 获取监听事件
+     * 清除rootView的单击响应事件
+     */
+    public void unregisterRootViewItemClickListener() {
+        mRootViewClickListener = null;
+        mRootView.setOnClickListener(null);
+    }
+
+    /**
+     * 注册view的单击事件,此处不仅限于对整个item进行注册,可以是item中某个view,
+     * 也可以是rootView,但rootView不推荐在此处注册,通过{@link #registerRootViewItemClickListener(OnItemClickListener)}注册rootView的单击响应事件
      *
+     * @param viewId   需要注册的viewId
+     * @param listener 单击响应事件
      * @return
      */
-    public OnItemClickListener getItemClickListener() {
-        return mItemClickListener;
+    public boolean registerViewOnClickListener(int viewId, OnItemClickListener listener) {
+        if (mItemClickMap == null) {
+            mItemClickMap = new ArrayMap<Integer, OnItemClickListener>(10);
+        }
+        View view = this.getView(viewId);
+        if (view != null) {
+            mItemClickMap.put(viewId, listener);
+            view.setOnClickListener(this);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 注册简单的view单击事件,此处不仅限于对整个item进行注册,可以是item中某个view
+     *
+     * @param viewId   需要注册的viewId
+     * @param listener 单击响应事件
+     * @return
+     */
+    public boolean registerSimpleViewOnClickListener(int viewId, SimpleItemClickListener listener) {
+        return this.registerViewOnClickListener(viewId, listener);
+    }
+
+    /**
+     * 清除指定viewId注册的单击事件
+     *
+     * @param viewId
+     * @return 成功清除返回true, 若无该viewId注册事件返回false
+     */
+    public boolean unregisterViewOnClickListener(int viewId) {
+        if (mItemClickMap == null) {
+            return true;
+        } else {
+            View view = this.getView(viewId);
+            if (view != null) {
+                view.setOnClickListener(null);
+            }
+            OnItemClickListener listener = mItemClickMap.remove(viewId);
+            return listener != null;
+        }
+    }
+
+    /**
+     * 清除所有单击注册监听事件
+     */
+    public void unregisterAllViewOnClickListener() {
+        if (mItemClickMap != null) {
+            for (int viewId : mItemClickMap.keySet()) {
+                View view = this.getView(viewId);
+                if (view != null) {
+                    view.setOnClickListener(null);
+                }
+            }
+            mItemClickMap.clear();
+        }
+        mRootView.setOnClickListener(null);
+        mRootViewClickListener = null;
     }
 
     /**
@@ -183,7 +257,7 @@ public class HeaderRecycleViewHolder extends RecyclerView.ViewHolder implements 
      *
      * @return
      */
-    public RecyclerView.Adapter getAdatper() {
+    public HeaderRecycleAdapter getAdatper() {
         return mParentAdapter;
     }
 
@@ -212,10 +286,42 @@ public class HeaderRecycleViewHolder extends RecyclerView.ViewHolder implements 
      */
     @Override
     public void onClick(View v) {
-        if (mItemClickListener != null && mIsClickEnabled) {
-            mItemClickListener.onItemClick(mGroupId, mChildId, getAdapterPosition(), this.isHeaderItem(), mRootView, this);
+        //允许单击事件
+        if (mIsClickEnabled) {
+            //如果存在rootView的监听事件,只响应rootView的监听事件
+            if (mRootViewClickListener != null) {
+                mRootViewClickListener.onItemClick(mGroupId, mChildId, getAdapterPosition(), ROOT_VIEW_ID, this.isHeaderItem(), mRootView, this);
+            } else {
+                //否则根据注册的view尝试响应监听事件
+                int id = v.getId();
+                OnItemClickListener listener = mItemClickMap == null ? null : mItemClickMap.get(id);
+                if (listener != null) {
+                    listener.onItemClick(mGroupId, mChildId, getAdapterPosition(), id, this.isHeaderItem(), mRootView, this);
+                }
+            }
         } else {
             Log.i("view holder", "itemClickListener监听事件不存在或者该item不可响应点击事件");
+        }
+    }
+
+    /**
+     * 简单的ItemClick事件
+     */
+    public static abstract class SimpleItemClickListener implements OnItemClickListener {
+        /**
+         * itemClick事件
+         *
+         * @param groupId  当前item所在分组,分组ID从0开始
+         * @param childId  当前item在所有分组中的ID,从0开始,当此值为-1时,当前为该分组的头部
+         * @param position item位置
+         * @param viewId   viewId,此参数值为注册监听事件时使用的viewId
+         * @param holder
+         */
+        public abstract void onItemClick(int groupId, int childId, int position, int viewId, HeaderRecycleViewHolder holder);
+
+        @Override
+        public void onItemClick(int groupId, int childId, int position, int viewId, boolean isHeader, View rootView, HeaderRecycleViewHolder holder) {
+            this.onItemClick(groupId, childId, position, viewId, holder);
         }
     }
 
@@ -223,6 +329,17 @@ public class HeaderRecycleViewHolder extends RecyclerView.ViewHolder implements 
      * itemClick事件
      */
     public interface OnItemClickListener {
-        public void onItemClick(int groupId, int childId, int position, boolean isHeader, View rootView, HeaderRecycleViewHolder holder);
+        /**
+         * 带header的item单击事件
+         *
+         * @param groupId  当前item所在分组,分组ID从0开始
+         * @param childId  当前item在所有分组中的ID,从0开始,当此值为-1时,当前为该分组的头部
+         * @param position 当前item所有分组的位置(header也会占用一个位置,请注意)
+         * @param viewId   当前响应的单击事件view的ID,若为rootView,则该值为{@link #ROOT_VIEW_ID}
+         * @param isHeader 当前item是否为header
+         * @param rootView 当前item的rootView
+         * @param holder
+         */
+        public void onItemClick(int groupId, int childId, int position, int viewId, boolean isHeader, View rootView, HeaderRecycleViewHolder holder);
     }
 }

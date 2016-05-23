@@ -1,27 +1,38 @@
 package com.henrytaro.ct.ui;
 
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.util.ArrayMap;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.henrytaro.ct.*;
+import com.henrytaro.ct.R;
 import com.henrytaro.ct.other.GridHeaderRecycleAdapter;
+import com.taro.headerrecycle.ExtraViewWrapAdapter;
+import com.taro.headerrecycle.HeaderGridLayoutManager;
+import com.taro.headerrecycle.HeaderRecycleAdapter;
+import com.taro.headerrecycle.HeaderRecycleViewHolder;
+import com.taro.headerrecycle.SimpleRecycleAdapter;
+import com.taro.headerrecycle.StickHeaderItemDecoration;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by taro on 16/4/19.
  */
-public class MainActivity extends AppCompatActivity implements HeaderRecycleViewHolder.OnItemClickListener, SimpleRecycleAdapter.OnSimpleItemClickListener {
+public class MainActivity extends AppCompatActivity implements HeaderRecycleViewHolder.OnItemClickListener {
     RecyclerView mRvDisplay = null;
     List<List> mGroupList = null;
     Map<Integer, String> mHeaderMap = new ArrayMap<Integer, String>();
@@ -32,6 +43,8 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
     HeaderRecycleAdapter mMultiAdapter = null;
     GridHeaderRecycleAdapter mGridHeaderAdapter = null;
     StickHeaderItemDecoration mStickDecoration = null;
+
+    ExtraViewWrapAdapter mExtraAdapter = null;
 
     LinearLayoutManager mLinearLayout = null;
 
@@ -64,22 +77,29 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
 
 
         //无头部普通adapter
-        mSimpleAdapter = new SimpleRecycleAdapter<String>(this, new HeaderAdapterOption(false, false), itemList, this);
+        mSimpleAdapter = new SimpleRecycleAdapter<String>(this, new HeaderAdapterOption(false, false), itemList);
         //item单类型带头部adapter
-        mNormalAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, false), mGroupList, mHeaderMap, this);
+        mNormalAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, false), mGroupList, mHeaderMap);
         //item多类型带头部adapter
-        mMultiAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(true, false), mGroupList, mHeaderMap, this);
+        mMultiAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(true, false), mGroupList, mHeaderMap);
         //item单类型带颜色头部adapter
-        mColorAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, true), mGroupList, mHeaderMap, this);
-        //
-        mGridHeaderAdapter = new GridHeaderRecycleAdapter(this, new HeaderAdapterOption(false, false), mGroupList, mHeaderMap, this);
+        mColorAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, true), mGroupList, mHeaderMap);
+
+
+        //TODO:封装了gridLayoutManager的adapter,不推荐使用此类,使用 HeaderGridLayoutManager 代替
+        mGridHeaderAdapter = new GridHeaderRecycleAdapter(this, new HeaderAdapterOption(false, false), mGroupList, mHeaderMap);
         mGridHeaderAdapter.createHeaderGridLayoutManager(this, 3, GridLayoutManager.VERTICAL);
         //固定头部装饰
         mStickDecoration = new StickHeaderItemDecoration(mNormalAdapter);
-        mLinearLayout = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        mLinearLayout = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRvDisplay.setLayoutManager(mLinearLayout);
         mRvDisplay.setPadding(50, 50, 50, 50);
         mRvDisplay.setAdapter(mNormalAdapter);
+
+        mExtraAdapter = new ExtraViewWrapAdapter(this, mNormalAdapter);
+        mExtraAdapter.addHeaderView(R.layout.item_extra, LayoutInflater.from(this).inflate(R.layout.item_extra, mRvDisplay, false));
+        mExtraAdapter.addHeaderView(R.layout.item_extra, LayoutInflater.from(this).inflate(R.layout.item_extra, mRvDisplay, false));
+
     }
 
     @Override
@@ -119,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
                 break;
             case R.id.action_linear_layout:
                 mRvDisplay.setLayoutManager(mLinearLayout);
-                mRvDisplay.setAdapter(mNormalAdapter);
+                mRvDisplay.setAdapter(mExtraAdapter);
                 mNormalAdapter.setIsShowHeader(true);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
                 mNormalAdapter.notifyDataSetChanged();
@@ -158,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
 //                mGridHeaderAdapter.notifyDataSetChanged();
                 break;
             case R.id.action_stick_header:
-                mRvDisplay.setAdapter(mNormalAdapter);
+                mRvDisplay.setAdapter(mExtraAdapter);
                 mNormalAdapter.setIsShowHeader(true);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
                 mStickDecoration = new StickHeaderItemDecoration(mNormalAdapter);
@@ -189,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
     }
 
     @Override
-    public void onItemClick(int groupId, int childId, int position, boolean isHeader, View rootView, HeaderRecycleViewHolder holder) {
+    public void onItemClick(int groupId, int childId, int position, int viewId, boolean isHeader, View rootView, HeaderRecycleViewHolder holder) {
 //        RecyclerView.LayoutManager layoutManager = mRvDisplay.getLayoutManager();
 //        if (layoutManager instanceof GridLayoutManager) {
 //            ((GridLayoutManager) layoutManager).setSpanCount(2);
@@ -198,19 +218,16 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         Toast.makeText(this, "groud = " + groupId + "/child = " + childId + "/pos = " + position, Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public void onSimpleItemClick(int position, View rootView, HeaderRecycleViewHolder holder) {
-        Toast.makeText(this, "/pos = " + position, Toast.LENGTH_SHORT).show();
-    }
 
-
-    private class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption<String,String> {
+    private class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption<String, String> {
         private boolean mIsMultiType = false;
         private boolean mIsSetBgColor = false;
+        private Drawable mDrawable = null;
 
         public HeaderAdapterOption(boolean isMultiType, boolean isSetBgColor) {
             mIsMultiType = isMultiType;
             mIsSetBgColor = isSetBgColor;
+            mDrawable = getResources().getDrawable(R.drawable.bg);
         }
 
         @Override
@@ -266,6 +283,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
 
         @Override
         public void setHeaderHolder(int groupId, String header, HeaderRecycleViewHolder holder) {
+            holder.registerRootViewItemClickListener(MainActivity.this);
             TextView tv_header = holder.getView(R.id.tv_header);
             if (tv_header != null) {
                 tv_header.setText(header.toString());
@@ -278,9 +296,15 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
 
         @Override
         public void setViewHolder(int groupId, int childId, int position, String itemData, HeaderRecycleViewHolder holder) {
+            holder.registerRootViewItemClickListener(MainActivity.this);
             TextView tv_content = holder.getView(R.id.tv_content);
             tv_content.setText(itemData.toString());
 
+            if (holder.getItemViewType() == 0 || holder.getItemViewType() == NO_HEADER_TYPE) {
+                BubbleBoxLayout layout = (BubbleBoxLayout) holder.getRootView();
+                layout.setIsDrawableTest(true);
+                layout.setButtomText("小洪是SB,哇咔哫");
+            }
             if (mIsSetBgColor) {
                 holder.getRootView().setBackgroundColor(Color.parseColor("#99cc99"));
             }

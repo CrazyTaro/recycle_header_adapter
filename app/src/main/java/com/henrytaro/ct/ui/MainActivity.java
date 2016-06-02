@@ -3,11 +3,13 @@ package com.henrytaro.ct.ui;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.util.ArrayMap;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,6 +25,7 @@ import com.taro.headerrecycle.HeaderRecycleAdapter;
 import com.taro.headerrecycle.HeaderRecycleViewHolder;
 import com.taro.headerrecycle.SimpleRecycleAdapter;
 import com.taro.headerrecycle.StickHeaderItemDecoration;
+import com.taro.headerrecycle.helper.RecycleVIewScrollHelper;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -32,8 +35,10 @@ import java.util.Map;
 /**
  * Created by taro on 16/4/19.
  */
-public class MainActivity extends AppCompatActivity implements HeaderRecycleViewHolder.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements HeaderRecycleViewHolder.OnItemClickListener, RecycleVIewScrollHelper.OnScrollPositionChangedListener {
     RecyclerView mRvDisplay = null;
+    FloatingActionButton mFAB = null;
+
     List<List> mGroupList = null;
     Map<Integer, String> mHeaderMap = new ArrayMap<Integer, String>();
 
@@ -43,16 +48,21 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
     HeaderRecycleAdapter mMultiAdapter = null;
     GridHeaderRecycleAdapter mGridHeaderAdapter = null;
     StickHeaderItemDecoration mStickDecoration = null;
-
     ExtraViewWrapAdapter mExtraAdapter = null;
 
     LinearLayoutManager mLinearLayout = null;
+    RecycleVIewScrollHelper mScrollHelper = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mRvDisplay = (RecyclerView) findViewById(R.id.rv_test);
+        mFAB = (FloatingActionButton) findViewById(R.id.fab_test);
+
+        mScrollHelper = new RecycleVIewScrollHelper(this);
+        mScrollHelper.setCheckScrollToTopBottomTogether(false);
+        mScrollHelper.attachToRecycleView(mRvDisplay);
 
         mGroupList = new LinkedList<List>();
         mHeaderMap = new ArrayMap<Integer, String>();
@@ -218,6 +228,25 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         Toast.makeText(this, "groud = " + groupId + "/child = " + childId + "/pos = " + position, Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void onScrollToTop() {
+        mFAB.hide();
+        Toast.makeText(this, "滑动到顶部", Toast.LENGTH_SHORT).show();
+        Log.i("scroll","滑动到顶部");
+    }
+
+    @Override
+    public void onScrollToBottom() {
+        Toast.makeText(this, "滑动到底部", Toast.LENGTH_SHORT).show();
+        Log.i("scroll","滑动到底部");
+    }
+
+    @Override
+    public void onScrollToUnknown(boolean isTopViewVisible, boolean isBottomViewVisible) {
+        mFAB.show();
+        Log.i("scroll","滑动未达到底部或者顶部");
+    }
+
 
     private class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption<String, String> {
         private boolean mIsMultiType = false;
@@ -267,9 +296,9 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
             switch (viewType) {
                 case 0:
                 case NO_HEADER_TYPE:
-                    return R.layout.item_content;
-                case 1:
                     return R.layout.item_content_2;
+                case 1:
+                    return R.layout.item_content;
                 case -1:
                     return R.layout.item_header;
                 case -2:
@@ -300,7 +329,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
             TextView tv_content = holder.getView(R.id.tv_content);
             tv_content.setText(itemData.toString());
 
-            if (holder.getItemViewType() == 0 || holder.getItemViewType() == NO_HEADER_TYPE) {
+            if (holder.getItemViewType() == 1) {
                 BubbleBoxLayout layout = (BubbleBoxLayout) holder.getRootView();
                 layout.setIsDrawableTest(true);
                 layout.setButtomText("小洪是SB,哇咔哫");

@@ -1,27 +1,34 @@
 package com.taro.headerrecycle.adapter;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.util.ArrayMap;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.taro.headerrecycle.StickHeaderItemDecoration;
+import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
+
 import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
  * Created by taro on 16/5/19.
  */
-public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    public static final int VIEW_HEADER_REFRESH = Integer.MAX_VALUE / 2;
-    public static final int VIEW_FOOTER_LOAD_MORE = Integer.MIN_VALUE / 2;
+public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements StickHeaderItemDecoration.IStickerHeaderDecoration, HeaderSpanSizeLookup.ISpanSizeHandler {
+    public static final int VIEW_HEADER_REFRESH = Integer.MAX_VALUE / 3;
+    public static final int VIEW_FOOTER_LOAD_MORE = Integer.MIN_VALUE / 3;
 
     private HeaderFooterViewCache mHeaderOption = null;
     private HeaderFooterViewCache mFooterOption = null;
+    private StickHeaderItemDecoration.IStickerHeaderDecoration mIStickHeaderDecoration = null;
+    private HeaderSpanSizeLookup.ISpanSizeHandler mISpanSizeLookup = null;
+
+
     private View mRefreshHeader = null;
     private View mLoadMoreFooter = null;
     private boolean mIsRefreshing = false;
@@ -93,26 +100,21 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     /**
      * 默认创建多头部/尾部包装类的adapter,头部/尾部都可显示
      *
-     * @param context
      * @param innerAdapter
      */
-    public ExtraViewWrapAdapter(Context context, @NonNull RecyclerView.Adapter innerAdapter) {
-        this(context, innerAdapter, true, true);
+    public ExtraViewWrapAdapter(@NonNull RecyclerView.Adapter innerAdapter) {
+        this(innerAdapter, true, true);
     }
 
     /**
-     * 创建多头部/尾部包装类的adapter,使用此adapter包装内部adapter时会改变内部adapter的某些操作,当不再需要时请使用{@link #restoreInnerAdatper()}还原内部adapter的操作
+     * 创建多头部/尾部包装类的adapter,使用此adapter包装内部adapter时会改变内部adapter的某些操作,当不再需要时请使用{@link #unregisterInnerAdatperDataObserver()}还原内部adapter的操作
      *
-     * @param context
-     * @param innerAdapter       内部引用的adapter
+     * @param innerAdapter       内部引用的adapter,不可为null
      * @param isHeaderViewEnable 头部view是否可用
      * @param isFootViewEnable   尾部view是否可用
      */
-    public ExtraViewWrapAdapter(Context context, RecyclerView.Adapter innerAdapter, boolean isHeaderViewEnable, boolean isFootViewEnable) {
-        if (innerAdapter == null || context == null) {
-            throw new NullPointerException("wrap adapter can not be null");
-        }
-        mInnerAdapter = innerAdapter;
+    public ExtraViewWrapAdapter(@NonNull RecyclerView.Adapter innerAdapter, boolean isHeaderViewEnable, boolean isFootViewEnable) {
+        this.setInnerAdapter(innerAdapter);
         mIsHeaderViewEnable = isHeaderViewEnable;
         mIsFootViewEnable = isFootViewEnable;
         mHeaderOption = new HeaderFooterViewCache();
@@ -121,10 +123,68 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     }
 
     /**
-     * 还原内部adapter的相关操作
+     * 设置固定头部item渲染的接口回调
+     *
+     * @param decoration 固定头部接口,用于回调判断当前项是否为头部/是否需要显示及绘制固定头部
      */
-    public void restoreInnerAdatper() {
-        mInnerAdapter.unregisterAdapterDataObserver(mDataObserver);
+    public void setIStickHeaderItemDecoration(StickHeaderItemDecoration.IStickerHeaderDecoration decoration) {
+        mIStickHeaderDecoration = decoration;
+    }
+
+    /**
+     * 设置 gridLayoutManager 需要显示的spanSizeLookup
+     *
+     * @param spanSizeLookup 用于正确显示item占用的网格数
+     */
+    public void setISpanSizeLookup(HeaderSpanSizeLookup.ISpanSizeHandler spanSizeLookup) {
+        mISpanSizeLookup = spanSizeLookup;
+    }
+
+    /**
+     * 设置内置的innerAdapter,不可为null
+     *
+     * @param innerAdapter recycleView.Adapter,若该adapter已经实现了 {@link com.taro.headerrecycle.StickHeaderItemDecoration.IStickerHeaderDecoration}或者是{@link com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup.ISpanSizeHandler}
+     *                     将直接引用此实例,不需要再重新设置一次两个接口
+     */
+    public void setInnerAdapter(@NonNull RecyclerView.Adapter innerAdapter) {
+        mInnerAdapter = innerAdapter;
+        if (mInnerAdapter != null && mInnerAdapter instanceof StickHeaderItemDecoration.IStickerHeaderDecoration) {
+            mIStickHeaderDecoration = (StickHeaderItemDecoration.IStickerHeaderDecoration) mInnerAdapter;
+        }
+
+        if (mInnerAdapter != null && mInnerAdapter instanceof HeaderSpanSizeLookup.ISpanSizeHandler) {
+            mISpanSizeLookup = (HeaderSpanSizeLookup.ISpanSizeHandler) mInnerAdapter;
+        }
+    }
+
+    /**
+     * 反注册内部innerAdapter的数据更新observer
+     */
+    public void unregisterInnerAdatperDataObserver() {
+        if (mInnerAdapter != null) {
+            mInnerAdapter.unregisterAdapterDataObserver(mDataObserver);
+        }
+    }
+
+    /**
+     * 重新注册内部innerAdapter的数据更新observer
+     */
+    public void reregisterInnerAdapterDataObserver() {
+        if (mInnerAdapter != null) {
+            mInnerAdapter.registerAdapterDataObserver(mDataObserver);
+        }
+    }
+
+    /**
+     * 获取当前WrapAdapter位置在InnerAdapter中对应的位置,即除去headerView及refreshView
+     *
+     * @param wrapAdapterPosition 当前WrapAdapter的位置
+     * @return
+     */
+    public int getInnerAdapterPosition(int wrapAdapterPosition) {
+        int refreshViewCount = getRefreshingViewCount();
+        int headerViewCount = getHeaderViewCount();
+        return wrapAdapterPosition - refreshViewCount - headerViewCount;
     }
 
     /**
@@ -252,7 +312,7 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
         } else if (isFooterView(position)) {
             return mFooterOption.getViewViewTag(getFooterPosition(position));
         } else {
-            return mInnerAdapter.getItemViewType(position - getRefreshingViewCount() - getHeaderViewCount());
+            return mInnerAdapter.getItemViewType(getInnerAdapterPosition(position));
         }
     }
 
@@ -384,6 +444,91 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     //获取尾部view的个数
     private int getFooterViewCount() {
         return mIsFootViewEnable ? mFooterOption.size() : 0;
+    }
+
+
+    /*********
+     * 固定头部接口回调
+     ***********/
+
+    @Override
+    public boolean isHeaderPosition(int position) {
+        if (isLoadingView(position) || isRefreshingView(position) || isHeaderView(position) || isFooterView(position)) {
+            return false;
+        } else if (mIStickHeaderDecoration != null) {
+            return mIStickHeaderDecoration.isHeaderPosition(getInnerAdapterPosition(position));
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean hasStickHeader(int position) {
+        if (isLoadingView(position) || isRefreshingView(position) || isHeaderView(position) || isFooterView(position)) {
+            return false;
+        } else if (mIStickHeaderDecoration != null) {
+            return mIStickHeaderDecoration.hasStickHeader(getInnerAdapterPosition(position));
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int getHeaderViewTag(int position, RecyclerView parent) {
+        if (mIStickHeaderDecoration != null) {
+            return mIStickHeaderDecoration.getHeaderViewTag(getInnerAdapterPosition(position), parent);
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public View getHeaderView(int position, int headerViewTag, RecyclerView parent) {
+        if (mIStickHeaderDecoration != null) {
+            return mIStickHeaderDecoration.getHeaderView(getInnerAdapterPosition(position), headerViewTag, parent);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public void setHeaderView(int position, int headerViewTag, RecyclerView parent, View headerView) {
+        if (mIStickHeaderDecoration != null) {
+            mIStickHeaderDecoration.setHeaderView(getInnerAdapterPosition(position), headerViewTag, parent, headerView);
+        }
+    }
+
+    /***********
+     * GridLayoutManager中SpanSizeLookup的使用
+     *************/
+
+    @Override
+    public boolean isSpecialItem(int position) {
+        if (isLoadingView(position) || isRefreshingView(position) || isHeaderView(position) || isFooterView(position)) {
+            return true;
+        } else if (mISpanSizeLookup != null) {
+            return mISpanSizeLookup.isSpecialItem(getInnerAdapterPosition(position));
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int getSpecialItemSpanSize(int spanCount, int position) {
+        if (mISpanSizeLookup != null) {
+            return mISpanSizeLookup.getSpecialItemSpanSize(spanCount, getInnerAdapterPosition(position));
+        } else {
+            return spanCount;
+        }
+    }
+
+    @Override
+    public int getNormalItemSpanSize(int spanCount, int position) {
+        if (mISpanSizeLookup != null) {
+            return mISpanSizeLookup.getNormalItemSpanSize(spanCount, getInnerAdapterPosition(position));
+        } else {
+            return 1;
+        }
     }
 
     //重写adapterObserver,包装内部的adapter将会使用新的observer处理item

@@ -19,11 +19,11 @@ import android.widget.Toast;
 
 import com.henrytaro.ct.R;
 import com.henrytaro.ct.other.GridHeaderRecycleAdapter;
-import com.taro.headerrecycle.ExtraViewWrapAdapter;
-import com.taro.headerrecycle.HeaderGridLayoutManager;
-import com.taro.headerrecycle.HeaderRecycleAdapter;
-import com.taro.headerrecycle.HeaderRecycleViewHolder;
-import com.taro.headerrecycle.SimpleRecycleAdapter;
+import com.taro.headerrecycle.adapter.ExtraViewWrapAdapter;
+import com.taro.headerrecycle.layoutmanager.HeaderGridLayoutManager;
+import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
+import com.taro.headerrecycle.adapter.HeaderRecycleViewHolder;
+import com.taro.headerrecycle.adapter.SimpleRecycleAdapter;
 import com.taro.headerrecycle.StickHeaderItemDecoration;
 import com.taro.headerrecycle.helper.RecycleVIewScrollHelper;
 
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
     RecyclerView mRvDisplay = null;
     FloatingActionButton mFAB = null;
 
-    List<List> mGroupList = null;
+    List<List<String>> mGroupList = null;
     Map<Integer, String> mHeaderMap = new ArrayMap<Integer, String>();
 
     SimpleRecycleAdapter<String> mSimpleAdapter = null;
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         mScrollHelper.setCheckScrollToTopBottomTogether(false);
         mScrollHelper.attachToRecycleView(mRvDisplay);
 
-        mGroupList = new LinkedList<List>();
+        mGroupList = new LinkedList<List<String>>();
         mHeaderMap = new ArrayMap<Integer, String>();
         int groupId = 0;
         int count = 0;
@@ -89,11 +89,11 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         //无头部普通adapter
         mSimpleAdapter = new SimpleRecycleAdapter<String>(this, new HeaderAdapterOption(false, false), itemList);
         //item单类型带头部adapter
-        mNormalAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, false), mGroupList, mHeaderMap);
+        mNormalAdapter = new HeaderRecycleAdapter<String, String>(this, new HeaderAdapterOption(false, false), mGroupList, mHeaderMap);
         //item多类型带头部adapter
-        mMultiAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(true, false), mGroupList, mHeaderMap);
+        mMultiAdapter = new HeaderRecycleAdapter<String, String>(this, new HeaderAdapterOption(true, false), mGroupList, mHeaderMap);
         //item单类型带颜色头部adapter
-        mColorAdapter = new HeaderRecycleAdapter(this, new HeaderAdapterOption(false, true), mGroupList, mHeaderMap);
+        mColorAdapter = new HeaderRecycleAdapter<String, String>(this, new HeaderAdapterOption(false, true), mGroupList, mHeaderMap);
 
 
         //TODO:封装了gridLayoutManager的adapter,不推荐使用此类,使用 HeaderGridLayoutManager 代替
@@ -106,9 +106,11 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
         mRvDisplay.setPadding(50, 50, 50, 50);
         mRvDisplay.setAdapter(mNormalAdapter);
 
-        mExtraAdapter = new ExtraViewWrapAdapter(this, mNormalAdapter);
-        mExtraAdapter.addHeaderView(R.layout.item_extra, LayoutInflater.from(this).inflate(R.layout.item_extra, mRvDisplay, false));
-        mExtraAdapter.addHeaderView(R.layout.item_extra, LayoutInflater.from(this).inflate(R.layout.item_extra, mRvDisplay, false));
+        mExtraAdapter = new ExtraViewWrapAdapter(mNormalAdapter);
+        mExtraAdapter.addHeaderView(R.id.action_grid_layout, LayoutInflater.from(this).inflate(R.layout.item_extra, mRvDisplay, false));
+        mExtraAdapter.addHeaderView(R.id.action_grid_layout_no_header, LayoutInflater.from(this).inflate(R.layout.item_extra, mRvDisplay, false));
+        mExtraAdapter.addHeaderView(R.id.action_linear_horizontal, LayoutInflater.from(this).inflate(R.layout.item_extra, mRvDisplay, false));
+        mExtraAdapter.addHeaderView(R.id.action_linear_layout, LayoutInflater.from(this).inflate(R.layout.item_extra, mRvDisplay, false));
 
     }
 
@@ -188,10 +190,13 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
 //                mGridHeaderAdapter.notifyDataSetChanged();
                 break;
             case R.id.action_stick_header:
+                if (mRvDisplay.getLayoutManager() instanceof HeaderGridLayoutManager) {
+                    ((HeaderGridLayoutManager) mRvDisplay.getLayoutManager()).setISpanSizeHandler(mExtraAdapter);
+                }
                 mRvDisplay.setAdapter(mExtraAdapter);
                 mNormalAdapter.setIsShowHeader(true);
                 mRvDisplay.removeItemDecoration(mStickDecoration);
-                mStickDecoration = new StickHeaderItemDecoration(mNormalAdapter);
+                mStickDecoration = new StickHeaderItemDecoration(mExtraAdapter);
                 mRvDisplay.addItemDecoration(mStickDecoration);
                 mNormalAdapter.notifyDataSetChanged();
                 break;
@@ -232,19 +237,19 @@ public class MainActivity extends AppCompatActivity implements HeaderRecycleView
     public void onScrollToTop() {
         mFAB.hide();
         Toast.makeText(this, "滑动到顶部", Toast.LENGTH_SHORT).show();
-        Log.i("scroll","滑动到顶部");
+        Log.i("scroll", "滑动到顶部");
     }
 
     @Override
     public void onScrollToBottom() {
         Toast.makeText(this, "滑动到底部", Toast.LENGTH_SHORT).show();
-        Log.i("scroll","滑动到底部");
+        Log.i("scroll", "滑动到底部");
     }
 
     @Override
     public void onScrollToUnknown(boolean isTopViewVisible, boolean isBottomViewVisible) {
         mFAB.show();
-        Log.i("scroll","滑动未达到底部或者顶部");
+        Log.i("scroll", "滑动未达到底部或者顶部");
     }
 
 

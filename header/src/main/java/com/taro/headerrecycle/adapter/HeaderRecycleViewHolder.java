@@ -184,7 +184,7 @@ public class HeaderRecycleViewHolder extends RecyclerView.ViewHolder implements 
      */
     public boolean registerViewOnClickListener(int viewId, OnItemClickListener listener) {
         if (mItemClickMap == null) {
-            mItemClickMap = new ArrayMap<Integer, OnItemClickListener>(10);
+            mItemClickMap = new ArrayMap<Integer, OnItemClickListener>(15);
         }
         View view = this.getView(viewId);
         if (view != null) {

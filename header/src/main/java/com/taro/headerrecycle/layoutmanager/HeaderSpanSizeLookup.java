@@ -4,47 +4,43 @@ package com.taro.headerrecycle.layoutmanager;
  * Created by taro on 16/4/28.
  */
 
-import android.graphics.Point;
 import android.support.v7.widget.GridLayoutManager;
-
-import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
-
-import java.util.List;
 
 /**
  * 计算头部占用空格的类
  */
 public class HeaderSpanSizeLookup extends GridLayoutManager.SpanSizeLookup {
     private int mSpanCount = 0;
-    private HeaderRecycleAdapter mAdapter = null;
+    private ISpanSizeHandler mSpanLookup = null;
 
     /**
      * 创建分组显示的spanSizeLookup
      *
-     * @param adapter   设置或者更新adapter
+     * @param lookup    设置或者更新adapter
      * @param spanCount gridLayout网格列数
      */
-    public HeaderSpanSizeLookup(HeaderRecycleAdapter adapter, int spanCount) {
-        if (adapter == null) {
-            throw new RuntimeException("adapter can not be null");
-        }
-        this.setAdapter(adapter);
+    public HeaderSpanSizeLookup(ISpanSizeHandler lookup, int spanCount) {
+        this.setISpanSizeLookup(lookup);
+        this.setSpanCount(spanCount);
+    }
+
+    /**
+     * 创建分组显示的spanSizeLookup
+     *
+     * @param spanCount GridLayout网格列数
+     */
+    public HeaderSpanSizeLookup(int spanCount) {
         this.setSpanCount(spanCount);
     }
 
     /**
      * 设置或更新adapter
      *
-     * @param adapter
+     * @param lookup
      * @return
      */
-    public boolean setAdapter(HeaderRecycleAdapter adapter) {
-        if (adapter != null) {
-            mAdapter = adapter;
-            return true;
-        } else {
-            return false;
-        }
+    public void setISpanSizeLookup(ISpanSizeHandler lookup) {
+        mSpanLookup = lookup;
     }
 
     /**
@@ -65,28 +61,48 @@ public class HeaderSpanSizeLookup extends GridLayoutManager.SpanSizeLookup {
         return mSpanCount;
     }
 
-    /**
-     * 继承此类重写spanSize时,建议重写此方法
-     *
-     * @param groupId  分组ID
-     * @param childId  组内元素ID
-     * @param position 位置(包括头部)
-     * @return
-     */
-    public int getSpanSize(int groupId, int childId, int position) {
-        return 1;
-    }
-
     @Override
     public int getSpanSize(int position) {
-        List<Integer> eachGroupCountList = mAdapter.getEachGroupCountList();
-        boolean isShowHeader = mAdapter.isShowHeader();
-
-        Point p = mAdapter.getGroupIdAndChildIdFromPosition(eachGroupCountList, position, isShowHeader);
-        if (mAdapter.isHeaderItem(p)) {
-            return mSpanCount;
+        if (mSpanLookup != null) {
+            if (mSpanLookup.isSpecialItem(position)) {
+                return mSpanLookup.getSpecialItemSpanSize(mSpanCount, position);
+            } else {
+                return mSpanLookup.getNormalItemSpanSize(mSpanCount, position);
+            }
         } else {
-            return p != null ? getSpanSize(p.x, p.y, position) : 1;
+            return 1;
         }
+    }
+
+
+    /**
+     * GridLayoutManager 对特殊item的SpanSize进行处理的接口
+     */
+    public interface ISpanSizeHandler {
+        /**
+         * 是否特殊的item,如header或者某些特别的item
+         *
+         * @param position 当前item的position的位置
+         * @return
+         */
+        public boolean isSpecialItem(int position);
+
+        /**
+         * 获取特殊item占用的网格数,此方法仅会在是特殊item时才调用
+         *
+         * @param spanCount 当前GridLayoutManager设置的每行网格数
+         * @param position  当前特殊item的位置
+         * @return
+         */
+        public int getSpecialItemSpanSize(int spanCount, int position);
+
+        /**
+         * 获取正常item占用的网格数,默认值理论上应该为1,但可以由实现类决定,此方法仅会在非特殊item时调用
+         *
+         * @param spanCount 当前GridLayoutManger设置的每行网格数
+         * @param position  当前正常item的位置
+         * @return
+         */
+        public int getNormalItemSpanSize(int spanCount, int position);
     }
 }

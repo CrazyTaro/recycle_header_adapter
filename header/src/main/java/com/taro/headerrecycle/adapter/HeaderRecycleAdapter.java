@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.taro.headerrecycle.StickHeaderItemDecoration;
+import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.Map;
 /**
  * Created by taro on 16/4/19.
  */
-public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecycleViewHolder> implements StickHeaderItemDecoration.IStickerHeaderDecoration {
+public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecycleViewHolder> implements StickHeaderItemDecoration.IStickerHeaderDecoration, HeaderSpanSizeLookup.ISpanSizeHandler {
     //分组数据列表
     protected List<List<T>> mGroupList;
     protected List<Integer> mEachGroupCountList;
@@ -102,6 +103,16 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      */
     public Map<Integer, H> getHeaderMap() {
         return mHeaderMap;
+    }
+
+    /**
+     * 获取指定分组的头部的数据,可能返回null若不存在该分组
+     *
+     * @param groupId
+     * @return
+     */
+    public H getHeader(int groupId) {
+        return mHeaderMap.get(groupId);
     }
 
     /**
@@ -202,13 +213,46 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     }
 
     /**
+     * 获取此类实现的用于固定头部展示的 stickHeaderDecoration 接口
+     *
+     * @return
+     */
+    public StickHeaderItemDecoration.IStickerHeaderDecoration getImplementStickHeaderDecoration() {
+        return this;
+    }
+
+    /**
+     * 获取此类实现的用于gridLayoutManager中显示item占用网格数的 spanSizeHandler 接口
+     *
+     * @return
+     */
+    public HeaderSpanSizeLookup.ISpanSizeHandler getImplementSpanSizeLookupHandler() {
+        return this;
+    }
+
+    /**
      * 判断当前item是否为headerView
      *
      * @param p item相关的分组及子元素信息
      * @return
      */
-    protected boolean isHeaderItem(Point p) {
+    public boolean isHeaderItem(Point p) {
         if (p != null && p.x >= 0 && p.y == -1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 判断给定的groupId和childId是否对应位置的item为header
+     *
+     * @param groupId 分组索引
+     * @param childId 分组内列表的索引
+     * @return
+     */
+    public boolean isHeaderItem(int groupId, int childId) {
+        if (groupId < mEachGroupCountList.size() && groupId >= 0 && childId == -1) {
             return true;
         } else {
             return false;
@@ -221,7 +265,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      * @param p
      * @return
      */
-    protected T getItem(Point p) {
+    public T getItem(Point p) {
         //若该位置为header,返回null
         if (isHeaderItem(p)) {
             return null;
@@ -240,7 +284,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     }
 
     /**
-     * 根据position计算分组的ID及当前项所有的组内ID
+     * 根据position计算分组的索引及分组内列表的数据项索引
      *
      * @param position
      * @return
@@ -312,8 +356,11 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         }
     }
 
+    /**********
+     * 固定头部的实现类
+     *********/
     @Override
-    public boolean isHeader(int position) {
+    public boolean isHeaderPosition(int position) {
         Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
         return isHeaderItem(p);
     }
@@ -324,19 +371,19 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     }
 
     @Override
-    public int getHeaderViewID(int position, RecyclerView parent) {
+    public int getHeaderViewTag(int position, RecyclerView parent) {
         Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
         return mOptions.getLayoutId(mOptions.getHeaderViewType(p.x, position));
     }
 
     @Override
-    public View getHeaderView(int position, int layoutId, RecyclerView parent) {
-        View itemView = LayoutInflater.from(mApplicationContext).inflate(layoutId, parent, false);
+    public View getHeaderView(int position, int headerViewTag, RecyclerView parent) {
+        View itemView = LayoutInflater.from(mApplicationContext).inflate(headerViewTag, parent, false);
         return itemView;
     }
 
     @Override
-    public void setHeaderView(int position, int layoutId, RecyclerView parent, View headerView) {
+    public void setHeaderView(int position, int headerViewTag, RecyclerView parent, View headerView) {
         Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
         Object headerObj = mHeaderMap.get(p.x);
         HeaderRecycleViewHolder holder = (HeaderRecycleViewHolder) headerView.getTag();
@@ -345,6 +392,25 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
             headerView.setTag(holder);
         }
         mOptions.setHeaderHolder(p.x, headerObj, holder);
+    }
+
+    /************
+     * GridLayoutManage头部spanSizeLookup实现
+     *************/
+    @Override
+    public boolean isSpecialItem(int position) {
+        Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
+        return isHeaderItem(p);
+    }
+
+    @Override
+    public int getSpecialItemSpanSize(int spanCount, int position) {
+        return spanCount;
+    }
+
+    @Override
+    public int getNormalItemSpanSize(int spanCount, int position) {
+        return 1;
     }
 
 

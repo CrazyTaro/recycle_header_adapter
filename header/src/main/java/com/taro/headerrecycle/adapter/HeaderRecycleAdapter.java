@@ -1,4 +1,4 @@
-package com.taro.headerrecycle;
+package com.taro.headerrecycle.adapter;
 
 import android.content.Context;
 import android.graphics.Point;
@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.taro.headerrecycle.StickHeaderItemDecoration;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,12 +16,12 @@ import java.util.Map;
 /**
  * Created by taro on 16/4/19.
  */
-public class HeaderRecycleAdapter<T> extends RecyclerView.Adapter<HeaderRecycleViewHolder> implements StickHeaderItemDecoration.IStickerHeaderDecoration {
+public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecycleViewHolder> implements StickHeaderItemDecoration.IStickerHeaderDecoration {
     //分组数据列表
     protected List<List<T>> mGroupList;
     protected List<Integer> mEachGroupCountList;
     //头部数据
-    protected Map<Integer, ? extends Object> mHeaderMap;
+    protected Map<Integer, H> mHeaderMap;
     protected Context mApplicationContext;
     protected IHeaderAdapterOption mOptions = null;
     private OnHeaderParamsUpdateListener mParamsUpdateListener = null;
@@ -36,7 +38,7 @@ public class HeaderRecycleAdapter<T> extends RecyclerView.Adapter<HeaderRecycleV
      * @param groupList 分组数据
      * @param headerMap 分组头部匹配的Map
      */
-    public HeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List<T>> groupList, Map<Integer, ? extends Object> headerMap) {
+    public HeaderRecycleAdapter(Context context, IHeaderAdapterOption<T, H> option, List<List<T>> groupList, Map<Integer, H> headerMap) {
         if (context == null || option == null) {
             throw new NullPointerException("context and option can not be null");
         }
@@ -91,6 +93,15 @@ public class HeaderRecycleAdapter<T> extends RecyclerView.Adapter<HeaderRecycleV
      */
     public List<List<T>> getGroupList() {
         return mGroupList;
+    }
+
+    /**
+     * 获取头部数据
+     *
+     * @return
+     */
+    public Map<Integer, H> getHeaderMap() {
+        return mHeaderMap;
     }
 
     /**
@@ -172,15 +183,16 @@ public class HeaderRecycleAdapter<T> extends RecyclerView.Adapter<HeaderRecycleV
         Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
         //设置当前项的组ID,与组内数据ID
         holder.setGroupIdAndChildId(p.x, p.y);
-        Object holderData = null;
+        T itemData = null;
+        H headerData = null;
         if (isHeaderItem(p)) {
             //设置头部数据显示
-            holderData = mHeaderMap.get(p.x);
-            mOptions.setHeaderHolder(p.x, holderData, holder);
+            headerData = mHeaderMap.get(p.x);
+            mOptions.setHeaderHolder(p.x, headerData, holder);
         } else {
             //设置普通Item数据显示
-            holderData = mGroupList.get(p.x).get(p.y);
-            mOptions.setViewHolder(p.x, p.y, position, holderData, holder);
+            itemData = mGroupList.get(p.x).get(p.y);
+            mOptions.setViewHolder(p.x, p.y, position, itemData, holder);
         }
     }
 

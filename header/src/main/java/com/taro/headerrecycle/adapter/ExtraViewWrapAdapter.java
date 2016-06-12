@@ -1,4 +1,4 @@
-package com.taro.headerrecycle;
+package com.taro.headerrecycle.adapter;
 
 import android.content.Context;
 import android.support.annotation.NonNull;

@@ -1,4 +1,4 @@
-package com.taro.headerrecycle;
+package com.taro.headerrecycle.adapter;
 
 import android.content.Context;
 
@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Created by taro on 16/4/19.
  */
-public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T> {
+public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T, Object> {
     private List<T> mItemList = null;
 
     /**
@@ -73,7 +73,7 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T> {
 
         @Override
         public int getHeaderViewType(int groupId, int position) {
-            return IHeaderAdapterOption.NO_HEADER_TYPE;
+            return NO_HEADER_TYPE;
         }
 
         @Override

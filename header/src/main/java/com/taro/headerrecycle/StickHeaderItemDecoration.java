@@ -38,11 +38,24 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
         mOutRect = new Rect();
     }
 
+    /**
+     * 设置固定头部item的判断及处理接口
+     *
+     * @param handler
+     */
+    public void setIStickerHeaderDecoration(IStickerHeaderDecoration handler) {
+        mViewCacheMap.clear();
+        mHeaderHandler = handler;
+    }
+
     @Override
     public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
         //在绘制完整个recycleView之后绘制,绘制的结果将显示在所有Item上面
         super.onDrawOver(c, parent, state);
 
+        if (mHeaderHandler == null) {
+            return;
+        }
 
         int position = 0;
         boolean isHorizontal = isHorizontal(parent);
@@ -64,18 +77,18 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
         //当前位置的item需要显示headerView
         if (mHeaderHandler.hasStickHeader(position)) {
             //获取headerView的layoutID
-            int headerID = mHeaderHandler.getHeaderViewID(position, parent);
+            int headerTag = mHeaderHandler.getHeaderViewTag(position, parent);
             //获取layoutID对应的缓存headerView
-            View headerView = mViewCacheMap.get(headerID);
+            View headerView = mViewCacheMap.get(headerTag);
             //不存在缓存view时加载headerView
             if (headerView == null) {
-                headerView = mHeaderHandler.getHeaderView(position, headerID, parent);
+                headerView = mHeaderHandler.getHeaderView(position, headerTag, parent);
                 //保存到缓存中
-                mViewCacheMap.put(headerID, headerView);
-                Log.i("stick", "new view -----------------------------------------");
+                mViewCacheMap.put(headerTag, headerView);
+                Log.i("stick", "new headerView/ tag = " + headerTag);
             }
             //设置headerView的数据显示
-            mHeaderHandler.setHeaderView(position, headerID, parent, headerView);
+            mHeaderHandler.setHeaderView(position, headerTag, parent, headerView);
             /**
              * 测量工作必须在这里处理,因为默认是布局处理的布局是wrap_content,需要设置数据之后再进行测量计算工作
              * 否则如果布局中某些view是wrap_content,当不存在数据时该view大小将为0,即无法显示
@@ -193,7 +206,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
             //获取其position
             positionInSearch = parent.getChildAdapterPosition(viewInSearch);
             //判断当前view是否为header
-            if (mHeaderHandler.isHeader(positionInSearch)) {
+            if (mHeaderHandler.isHeaderPosition(positionInSearch)) {
                 return viewInSearch;
             }
         }
@@ -393,7 +406,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
          * @param position adapter中的item位置
          * @return
          */
-        public boolean isHeader(int position);
+        public boolean isHeaderPosition(int position);
 
         /**
          * 判断当前位置的item是否需要一个stick header view
@@ -404,32 +417,34 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
         public boolean hasStickHeader(int position);
 
         /**
-         * 获取指定位置需要显示的headerView的ID
+         * 获取指定位置需要显示的headerView的标志,该标志用于缓存唯一的一个header类型的view.
+         * 不同的headerView应该使用不同的tag,否则会被替换
          *
          * @param position adapter中的item位置
          * @param parent
          * @return
          */
-        public int getHeaderViewID(int position, RecyclerView parent);
+        public int getHeaderViewTag(int position, RecyclerView parent);
 
         /**
-         * 根据headerID获取需要的headerView
+         * 根据header标志或者position获取需要的headerView
          *
-         * @param position adapter中的item位置,当前需要显示headerView的位置
-         * @param layoutId headerView的ID
+         * @param position      adapter中的item位置,当前需要显示headerView的位置
+         * @param headerViewTag headerView的标志
          * @param parent
          * @return
          */
-        public View getHeaderView(int position, int layoutId, RecyclerView parent);
+        public View getHeaderView(int position, int headerViewTag, RecyclerView parent);
+
 
         /**
          * 设置headerView显示的数据
          *
-         * @param position   adapter中的item位置,当前需要显示headerView的位置
-         * @param layoutId   headerView的ID
+         * @param position      adapter中的item位置,当前需要显示headerView的位置
+         * @param headerViewTag headerView的标志
          * @param parent
-         * @param headerView 加载得到的或者缓存的headerView
+         * @param headerView    加载得到的或者缓存的headerView
          */
-        public void setHeaderView(int position, int layoutId, RecyclerView parent, View headerView);
+        public void setHeaderView(int position, int headerViewTag, RecyclerView parent, View headerView);
     }
 }

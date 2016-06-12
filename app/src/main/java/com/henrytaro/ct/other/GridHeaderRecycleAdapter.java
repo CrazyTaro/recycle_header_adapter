@@ -4,9 +4,8 @@ import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
-import com.taro.headerrecycle.HeaderRecycleAdapter;
-import com.taro.headerrecycle.HeaderRecycleViewHolder;
-import com.taro.headerrecycle.HeaderSpanSizeLookup;
+import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
+import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +13,7 @@ import java.util.Map;
 /**
  * Created by taro on 16/4/28.
  */
-public class GridHeaderRecycleAdapter<T> extends HeaderRecycleAdapter<T> {
+public class GridHeaderRecycleAdapter<T, H> extends HeaderRecycleAdapter<T, H> {
     private HeaderSpanSizeLookup mLookup = null;
     private boolean mIsGridLayout = false;
     private RecyclerView.LayoutManager mLayoutManager = null;
@@ -28,7 +27,7 @@ public class GridHeaderRecycleAdapter<T> extends HeaderRecycleAdapter<T> {
      * @param groupList 分组数据
      * @param headerMap 头部信息
      */
-    public GridHeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List<T>> groupList, Map<Integer, ? extends Object> headerMap) {
+    public GridHeaderRecycleAdapter(Context context, IHeaderAdapterOption option, List<List<T>> groupList, Map<Integer, H> headerMap) {
         super(context, option, groupList, headerMap);
     }
 

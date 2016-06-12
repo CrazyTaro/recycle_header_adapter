@@ -1,4 +1,4 @@
-package com.taro.headerrecycle;
+package com.taro.headerrecycle.adapter;
 
 import android.support.v4.util.ArrayMap;
 import android.support.v7.widget.RecyclerView;

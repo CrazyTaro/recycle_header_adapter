@@ -1,4 +1,4 @@
-package com.taro.headerrecycle;
+package com.taro.headerrecycle.layoutmanager;
 
 /**
  * Created by taro on 16/4/28.
@@ -6,6 +6,8 @@ package com.taro.headerrecycle;
 
 import android.graphics.Point;
 import android.support.v7.widget.GridLayoutManager;
+
+import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
 
 import java.util.List;
 

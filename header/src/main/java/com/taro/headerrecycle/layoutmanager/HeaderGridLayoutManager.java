@@ -1,7 +1,10 @@
-package com.taro.headerrecycle;
+package com.taro.headerrecycle.layoutmanager;
 
 import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;
+
+import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
+import com.taro.headerrecycle.adapter.HeaderSpanSizeLookup;
 
 /**
  * Created by taro on 16/4/28.

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_switch_data_source"
+        android:orderInCategory="100"
+        android:title="切换数据源"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_unchecked_full_recycle"
+        android:orderInCategory="100"
+        android:title="不检测Item是否填充全屏"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_checked_full_recycle"
+        android:orderInCategory="100"
+        android:title="检测Item是否填充全屏"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_check_top_bottom_together"
+        android:orderInCategory="100"
+        android:title="同时检测上下滑动"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_check_top_first"
+        android:orderInCategory="100"
+        android:title="优先检测滑动到顶部"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_check_bottom_first"
+        android:orderInCategory="100"
+        android:title="优先检测滑动到底部"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_correct_state"
+        android:orderInCategory="100"
+        android:title="最正确的状态"
+        app:showAsAction="never"/>
+</menu>

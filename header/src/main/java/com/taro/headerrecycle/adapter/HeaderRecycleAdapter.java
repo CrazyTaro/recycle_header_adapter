@@ -7,7 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.taro.headerrecycle.StickHeaderItemDecoration;
+import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
 import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
 
 import java.util.ArrayList;
@@ -149,8 +149,8 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         //更新数据总数,需要计算header数据在内
         updateCount(mEachGroupCountList, mIsShowHeader);
         if (mParamsUpdateListener != null) {
-            mParamsUpdateListener.updateGroupList(groupList);
-            mParamsUpdateListener.updateEachGroupCountList(mEachGroupCountList);
+            mParamsUpdateListener.onUpdateGroupList(groupList);
+            mParamsUpdateListener.onUpdateEachGroupCountList(mEachGroupCountList);
         }
     }
 
@@ -164,7 +164,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
             updateCount(mEachGroupCountList, isShowHeader);
             mIsShowHeader = isShowHeader;
             if (mParamsUpdateListener != null) {
-                mParamsUpdateListener.updateIsShowHeader(isShowHeader);
+                mParamsUpdateListener.onUpdateIsShowHeader(isShowHeader);
             }
         }
     }
@@ -202,7 +202,8 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
             mOptions.setHeaderHolder(p.x, headerData, holder);
         } else {
             //设置普通Item数据显示
-            itemData = mGroupList.get(p.x).get(p.y);
+            List<T> itemList = mGroupList.get(p.x);
+            itemData = itemList != null ? itemList.get(p.y) : null;
             mOptions.setViewHolder(p.x, p.y, position, itemData, holder);
         }
     }
@@ -334,7 +335,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
             }
         }
         if (mParamsUpdateListener != null) {
-            mParamsUpdateListener.updateCount(mCount);
+            mParamsUpdateListener.OnUpdateCount(mCount);
         }
     }
 
@@ -392,6 +393,17 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
             headerView.setTag(holder);
         }
         mOptions.setHeaderHolder(p.x, headerObj, holder);
+    }
+
+    @Override
+    public boolean isBeenDecorated(int lastDecoratedPosition, int nowDecoratingPosition) {
+        Point lastPoint = getGroupIdAndChildIdFromPosition(mEachGroupCountList, lastDecoratedPosition, mIsShowHeader);
+        Point newPoint = getGroupIdAndChildIdFromPosition(mEachGroupCountList, nowDecoratingPosition, mIsShowHeader);
+        if (lastPoint != null && newPoint != null) {
+            return lastPoint.x == newPoint.x;
+        } else {
+            return false;
+        }
     }
 
     /************
@@ -482,27 +494,27 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
          *
          * @param isShowHeader
          */
-        public void updateIsShowHeader(boolean isShowHeader);
+        public void onUpdateIsShowHeader(boolean isShowHeader);
 
         /**
          * 更新分组数据
          *
          * @param groupList
          */
-        public void updateGroupList(List<List<T>> groupList);
+        public void onUpdateGroupList(List<List<T>> groupList);
 
         /**
          * 更新分组数据量(指将每个分组中的数据量取出按顺序存放到一个list中,直接通过此list可以获取每组的数据量并进行,不需要遍历分组数据去list.size()获取每个分组的数据量)
          *
          * @param eachGroupCountList
          */
-        public void updateEachGroupCountList(List<Integer> eachGroupCountList);
+        public void onUpdateEachGroupCountList(List<Integer> eachGroupCountList);
 
         /**
          * 更新item的总数,当显示header和不显示header时,此值会有变化
          *
          * @param count
          */
-        public void updateCount(int count);
+        public void OnUpdateCount(int count);
     }
 }

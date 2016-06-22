@@ -39,12 +39,6 @@
         app:showAsAction="never"/>
 
     <item
-        android:id="@+id/action_stick_header_bg"
-        android:orderInCategory="100"
-        android:title="固定头部带背景"
-        app:showAsAction="never"/>
-
-    <item
         android:id="@+id/action_simple_type"
         android:orderInCategory="100"
         android:title="无header布局"

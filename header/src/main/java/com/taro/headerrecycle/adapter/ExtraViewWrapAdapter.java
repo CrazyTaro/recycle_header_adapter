@@ -6,14 +6,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.taro.headerrecycle.StickHeaderItemDecoration;
+import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
 import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
 
 import java.util.AbstractMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -143,7 +142,7 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     /**
      * 设置内置的innerAdapter,不可为null
      *
-     * @param innerAdapter recycleView.Adapter,若该adapter已经实现了 {@link com.taro.headerrecycle.StickHeaderItemDecoration.IStickerHeaderDecoration}或者是{@link com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup.ISpanSizeHandler}
+     * @param innerAdapter recycleView.Adapter,若该adapter已经实现了 {@link StickHeaderItemDecoration.IStickerHeaderDecoration}或者是{@link com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup.ISpanSizeHandler}
      *                     将直接引用此实例,不需要再重新设置一次两个接口
      */
     public void setInnerAdapter(@NonNull RecyclerView.Adapter innerAdapter) {
@@ -495,6 +494,15 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     public void setHeaderView(int position, int headerViewTag, RecyclerView parent, View headerView) {
         if (mIStickHeaderDecoration != null) {
             mIStickHeaderDecoration.setHeaderView(getInnerAdapterPosition(position), headerViewTag, parent, headerView);
+        }
+    }
+
+    @Override
+    public boolean isBeenDecorated(int lastDecoratedPosition, int nowDecoratingPosition) {
+        if (mIStickHeaderDecoration != null) {
+            return mIStickHeaderDecoration.isBeenDecorated(lastDecoratedPosition, nowDecoratingPosition);
+        } else {
+            return false;
         }
     }
 

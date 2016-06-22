@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_no_stick_header"
+        android:orderInCategory="100"
+        android:title="无固定头部"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_stick_header"
+        android:orderInCategory="100"
+        android:title="固定头部"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_stick_header_bg"
+        android:orderInCategory="100"
+        android:title="固定头部带背景"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_error_stick_find_first_child_view"
+        android:orderInCategory="100"
+        android:title="检测第一个可见childView"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_error_stick_no_find_first_child_view"
+        android:orderInCategory="100"
+        android:title="检测第一个childView(不一定可见)"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_error_stick_calculate_draw_rect"
+        android:orderInCategory="100"
+        android:title="处理头部交互"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_error_stick_no_calculate_draw_rect"
+        android:orderInCategory="100"
+        android:title="不处理头部交互"
+        app:showAsAction="never"/>
+</menu>

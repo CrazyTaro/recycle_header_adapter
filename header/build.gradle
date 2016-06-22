@@ -27,13 +27,13 @@ dependencies {
 
 //打jar包方式1,其实要打出jar包,不能更改参数build/intermediates/bundles/release/
 task clearJar(type: Delete) {
-    delete 'build/outputs/headerRecycle-2.0.jar'
+    delete 'build/libs/headerRecycle-2.0.jar'
 }
 
 task makeJar(type: Copy) {
 //    build/intermediates/bundles/release/
-    from('build/intermediates/bundles/release/')
-    into('build/outputs/')
+    from('build/intermediates/classes/release/com/taro/headerrecycle')
+    into('build/libs')
     include('classes.jar')
     rename('classes.jar', 'headerRecycle-2.0.jar')
 }

@@ -7,6 +7,8 @@
 - RecycleScrollHelper,滑动检测辅助类
 - StickHeaderItemDecoration,固定头部装饰类
 
+重要类源码在header模块中,app模块为相关的示例实用及引用.需要使用时可只导入header模块.
+
 ---
 
 ## 源码分析链接

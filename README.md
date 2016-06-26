@@ -156,6 +156,7 @@ rv.setAdapter(adapter);
 ---
 
 - 继承并完善`SimpleAdapterOption`
+
 对于不显示header的情况来说,直接实现`IHeaderAdatperOption`需要实现的方法会很多,某些方法也可能会导致误解错乱.
 所以提供了一个`SimpleAdapterOption`抽象类,实现了部分`IHeaderAdatperOption`方法,将需要实现的方法简化.建议在使用不带头部的adatper时继承此类实现相关的抽象方法会更好.
 

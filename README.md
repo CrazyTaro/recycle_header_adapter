@@ -121,6 +121,7 @@ rv.setAdapter(adapter);
 #### SimpleRecycleAdapter(简单版)
 `SimpleRecycleAdapter`是不带`header`的`Adapter`,其实跟普通的创建一个adapter的结果是没有什么区别的.
 `SimpleRecycleAdapter`的使用方式与`HeaderRecycleAdapter`是一致的,创建数据源及数据绑定option即可.通过以上的示例我们知道只有分组的情况下会显示`Header`,所以`SimpleRecycleAdapter`内部其实只是覆盖和修改了部分设置.
+事实上,对一个可能需要显示头部某些情况下又不需要显示头部的情况来说,可以直接使用`HeaderRecycleAdapter`,通过设置adapter的属性`setIsShowHeader(boolean)`即可实现header的显示.`SimpleRecycleAdapter`更建议在仅普通显示不使用header的情况下使用(当然这种情况下完全可以不使用此adapter,使用普通的adapter即可.不过普通的adapter需要自己实现,使用simpleAdatper则不需要处理实现,仅需绑定数据了.)
 
 ---
 

@@ -22,8 +22,8 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     public static final int VIEW_HEADER_REFRESH = Integer.MAX_VALUE / 3;
     public static final int VIEW_FOOTER_LOAD_MORE = Integer.MIN_VALUE / 3;
 
-    private HeaderFooterViewCache mHeaderOption = null;
-    private HeaderFooterViewCache mFooterOption = null;
+    private HeaderFooterViewCache mHeaderCache = null;
+    private HeaderFooterViewCache mFooterCache = null;
     private StickHeaderItemDecoration.IStickerHeaderDecoration mIStickHeaderDecoration = null;
     private HeaderSpanSizeLookup.ISpanSizeHandler mISpanSizeLookup = null;
 
@@ -36,7 +36,14 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     private boolean mIsFootViewEnable = true;
     private boolean mIsHeaderViewEnable = true;
 
-    public static final void setRrefreshingViewStatus(boolean isRefreshing, boolean isScrollToStart, RecyclerView recyclerView) {
+    /**
+     * 设置刷新view的状态
+     *
+     * @param isRefreshing    当前是否在刷新
+     * @param isScrollToStart 刷新时是否滑动到recycleView第一项
+     * @param recyclerView
+     */
+    public static final void setRefreshingViewStatus(boolean isRefreshing, boolean isScrollToStart, RecyclerView recyclerView) {
         if (recyclerView == null) {
             return;
         } else {
@@ -51,6 +58,13 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
     }
 
+    /**
+     * 设置加载view的状态
+     *
+     * @param isLoading     当前是否在加载
+     * @param isScrollToEnd 加载时是否滑动到recycleView最后一项
+     * @param recyclerView
+     */
     public static final void setLoadingViewStatus(boolean isLoading, boolean isScrollToEnd, RecyclerView recyclerView) {
         if (recyclerView == null) {
             return;
@@ -66,6 +80,13 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
     }
 
+    /**
+     * 设置头部是否可用,不可用时不会显示任何头部
+     *
+     * @param isHeaderEnable   头部是否可用
+     * @param isScrollToHeader 是否在设置后滑动到recycleView第一项
+     * @param recycleView
+     */
     public static final void setHeaderViewEnable(boolean isHeaderEnable, boolean isScrollToHeader, RecyclerView recycleView) {
         if (recycleView == null) {
             return;
@@ -81,6 +102,13 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
         }
     }
 
+    /**
+     * 设置尾部是否可用,不可用时不会显示任何尾部
+     *
+     * @param isFooterEnable   尾部是否可用
+     * @param isScrollToFooter 是否在设置后滑动到recycleView最后一项
+     * @param recyclerView
+     */
     public static final void setFooterViewEnable(boolean isFooterEnable, boolean isScrollToFooter, RecyclerView recyclerView) {
         if (recyclerView == null) {
             return;
@@ -116,8 +144,8 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
         this.setInnerAdapter(innerAdapter);
         mIsHeaderViewEnable = isHeaderViewEnable;
         mIsFootViewEnable = isFootViewEnable;
-        mHeaderOption = new HeaderFooterViewCache();
-        mFooterOption = new HeaderFooterViewCache();
+        mHeaderCache = new HeaderFooterViewCache();
+        mFooterCache = new HeaderFooterViewCache();
         mInnerAdapter.registerAdapterDataObserver(mDataObserver);
     }
 
@@ -175,15 +203,20 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     }
 
     /**
-     * 获取当前WrapAdapter位置在InnerAdapter中对应的位置,即除去headerView及refreshView
+     * 获取当前WrapAdapter位置在InnerAdapter中对应的位置,即除去headerView及refreshView<br/>
      *
      * @param wrapAdapterPosition 当前WrapAdapter的位置
-     * @return
+     * @return 当无法得到内部InnerAdapter中对应的位置时(可能是header或者footer或者innerAdapter为null等), 返回-1
      */
     public int getInnerAdapterPosition(int wrapAdapterPosition) {
         int refreshViewCount = getRefreshingViewCount();
         int headerViewCount = getHeaderViewCount();
-        return wrapAdapterPosition - refreshViewCount - headerViewCount;
+        int innerPosition = wrapAdapterPosition - refreshViewCount - headerViewCount;
+        if (mInnerAdapter != null && innerPosition < mInnerAdapter.getItemCount()) {
+            return innerPosition;
+        } else {
+            return -1;
+        }
     }
 
     /**
@@ -212,7 +245,7 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
      * @return
      */
     public View addHeaderView(int viewTag, View headerView) {
-        return mHeaderOption.addView(viewTag, headerView);
+        return mHeaderCache.addView(viewTag, headerView);
     }
 
     /**
@@ -223,7 +256,7 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
      * @return
      */
     public View addFootView(int viewTag, View footerView) {
-        return mFooterOption.addView(viewTag, footerView);
+        return mFooterCache.addView(viewTag, footerView);
     }
 
     /**
@@ -233,7 +266,7 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
      * @return
      */
     public boolean removeHeaderView(int viewTag) {
-        return mHeaderOption.removeView(viewTag);
+        return mHeaderCache.removeView(viewTag);
     }
 
     /**
@@ -243,21 +276,21 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
      * @return
      */
     public boolean removeFooterView(int viewTag) {
-        return mFooterOption.removeView(viewTag);
+        return mFooterCache.removeView(viewTag);
     }
 
     /**
      * 清除所有头部view
      */
     public void clearHeaderView() {
-        mHeaderOption.clearAllView();
+        mHeaderCache.clearAllView();
     }
 
     /**
      * 清除所有尾部view
      */
     public void clearFootView() {
-        mFooterOption.clearAllView();
+        mFooterCache.clearAllView();
     }
 
     /**
@@ -307,9 +340,9 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
         } else if (isLoadingView(position)) {
             return VIEW_FOOTER_LOAD_MORE;
         } else if (isHeaderView(position)) {
-            return mHeaderOption.getViewViewTag(position);
+            return mHeaderCache.getViewViewTag(position);
         } else if (isFooterView(position)) {
-            return mFooterOption.getViewViewTag(getFooterPosition(position));
+            return mFooterCache.getViewViewTag(getFooterPosition(position));
         } else {
             return mInnerAdapter.getItemViewType(getInnerAdapterPosition(position));
         }
@@ -321,10 +354,10 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
             return new ExtraViewHolder(mRefreshHeader);
         } else if (viewType == VIEW_FOOTER_LOAD_MORE) {
             return new ExtraViewHolder(mLoadMoreFooter);
-        } else if (mFooterOption.isContainsView(viewType)) {
-            return new ExtraViewHolder(mFooterOption.getView(viewType));
-        } else if (mHeaderOption.isContainsView(viewType)) {
-            return new ExtraViewHolder(mHeaderOption.getView(viewType));
+        } else if (mFooterCache.isContainsView(viewType)) {
+            return new ExtraViewHolder(mFooterCache.getView(viewType));
+        } else if (mHeaderCache.isContainsView(viewType)) {
+            return new ExtraViewHolder(mHeaderCache.getView(viewType));
         } else {
             return mInnerAdapter.onCreateViewHolder(parent, viewType);
         }
@@ -437,12 +470,12 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     //获取头部view的个数
     private int getHeaderViewCount() {
-        return mIsHeaderViewEnable ? mHeaderOption.size() : 0;
+        return mIsHeaderViewEnable ? mHeaderCache.size() : 0;
     }
 
     //获取尾部view的个数
     private int getFooterViewCount() {
-        return mIsFootViewEnable ? mFooterOption.size() : 0;
+        return mIsFootViewEnable ? mFooterCache.size() : 0;
     }
 
 

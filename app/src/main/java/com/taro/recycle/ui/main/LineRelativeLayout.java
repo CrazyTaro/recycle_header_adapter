@@ -1,4 +1,4 @@
-package com.henrytaro.ct.ui;
+package com.taro.recycle.ui.main;
 
 import android.content.Context;
 import android.graphics.Canvas;

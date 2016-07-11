@@ -6,7 +6,6 @@ import android.graphics.Rect;
 import android.support.v4.util.SparseArrayCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -21,6 +20,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
     protected SparseArrayCompat<View> mViewCacheMap = null;
     //全局得胜的rect
     protected Rect mOutRect = null;
+    protected Point mOutPoint = null;
 
     //是否横向(此处只是作为方向的状态保存,确保切换方向时可以正常处理)
     protected boolean mIsHorizontal = false;
@@ -31,6 +31,8 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
     //上一次渲染的头部位置
     private int mLastDecorationPosition = 0;
 
+    private RecyclerView mRvSticker = null;
+
     /**
      * 创建固定头部的itemDecoration
      *
@@ -40,6 +42,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
         mHeaderHandler = handler;
         mViewCacheMap = new SparseArrayCompat<View>();
         mOutRect = new Rect();
+        mOutPoint = new Point();
     }
 
     /**
@@ -50,6 +53,30 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
     public void setIStickerHeaderDecoration(IStickerHeaderDecoration handler) {
         mViewCacheMap.clear();
         mHeaderHandler = handler;
+    }
+
+    /**
+     * 关联到指定的recycleView,此方法会取消上一个关联的recycleView
+     *
+     * @param rv
+     */
+    public void attachToRecyclerView(RecyclerView rv) {
+        if (rv != mRvSticker) {
+            unAttachToRecyclerView();
+            mRvSticker = rv;
+            if (rv != null) {
+                rv.addItemDecoration(this);
+            }
+        }
+    }
+
+    /**
+     * 取消当前关联的recycleView
+     */
+    public void unAttachToRecyclerView() {
+        if (mRvSticker != null) {
+            mRvSticker.removeItemDecoration(this);
+        }
     }
 
     @Override
@@ -97,7 +124,6 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
             //当headerView从未被测量时
             //当上一次渲染的固定头部与当前需要渲染的固定头部不一致时(包括布局与绑定的数据不同)
             if (isNeedToBindAndMeasureView(headerView, isHorizontal, position)) {
-                Log.i("draw", "----------------绑定新数据并测量头部------------------");
                 //设置headerView的数据显示
                 mHeaderHandler.setHeaderView(position, headerTag, parent, headerView);
                 /**
@@ -105,8 +131,6 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
                  * 否则如果布局中某些view是wrap_content,当不存在数据时该view大小将为0,即无法显示
                  * **/
                 measureHeaderView(parent, headerView, isHorizontal);
-            } else {
-                Log.i("draw", "不需要绑定新数据并测量头部");
             }
 
             //计算当前headerView需要绘制的区域
@@ -114,10 +138,10 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
 
             //计算当前headerView是否受到其它View的影响(有可能下一个headerView正在替换当前headerView的位置)
             //并返回受到影响的偏移量
-            Point offset = this.calculateViewDrawRectInflunceByOtherView(getChildPositionInView(), mOutRect, parent, state, isHorizontal);
+            this.calculateViewDrawRectInflunceByOtherView(mOutPoint, getChildPositionInView(), mOutRect, parent, state, isHorizontal);
             //更新当前绘制区域的偏移量
             //此处决定了headerView是否显示完全(可能整个绘制区域只是headerView的一部分)
-            this.updateViewDrawRect(mOutRect, offset);
+            this.updateViewDrawRect(mOutRect, mOutPoint);
 
 
             //此处不能使用canvas.save()来保存当前的状态再用canvas.restore()回复
@@ -127,7 +151,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
             c.clipRect(mOutRect);
             //根据recycleView计算当前headerView开始绘制的起点X,Y
             //此处决定了headerView是否绘制完整
-            this.calculateParentStartDrawPoint(mOutRect, parent, offset);
+            this.calculateParentStartDrawPoint(mOutRect, parent, mOutPoint);
             //调整canvas的绘制起点
             c.translate(mOutRect.left, mOutRect.top);
             //将View绘制到canvas上
@@ -212,17 +236,17 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
     /**
      * 根据布局方向计算偏移量
      *
+     * @param outPoint
      * @param headerView   当前第一项可见view后的第一个headerView,来自 {@link #searchFirstHeaderView(int, int, RecyclerView)}
      * @param rect         当前固定头部需要绘制的完整区域(不考虑其它view的影响)
      * @param parent
      * @param isHorizontal 布局方向
      * @return
      */
-    protected Point calculateOffsetAccordingOrientation(View headerView, Rect rect, RecyclerView parent, boolean isHorizontal) {
+    protected Point calculateOffsetAccordingOrientation(Point outPoint, View headerView, Rect rect, RecyclerView parent, boolean isHorizontal) {
         int offsetX = 0;
         int offsetY = 0;
         if (headerView != null) {
-            Log.e("draw", "offset header view position = " + parent.getChildAdapterPosition(headerView));
             //根据布局方向确定可见边缘为左边界还是上边界
             if (isHorizontal) {
                 //横向布局处理
@@ -237,10 +261,12 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
                 }
             }
         }
+        if (outPoint == null) {
+            outPoint = new Point();
+        }
+        outPoint.set(offsetX * -1, offsetY * -1);
         //偏移量是负值,因为绘制区域将向上或者向左移动出界面
-        Point po = new Point(offsetX * -1, offsetY * -1);
-        Log.e("draw", "offset = " + po.toString());
-        return po;
+        return outPoint;
     }
 
     /**
@@ -272,6 +298,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
      * 计算headerView绘制区域是否被其它View影响,此方法用于处理其它headerItem正在替换当前stick header View的情况
      * 计算顶出上一个headerView的偏移量
      *
+     * @param outPoint
      * @param childPosition
      * @param normalRect    正常的绘制区域,这里指的是在不考虑任何偏移量时当前headerView的绘制区域
      * @param parent
@@ -279,7 +306,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
      * @param isHorizontal  布局方向
      * @return
      */
-    protected Point calculateViewDrawRectInflunceByOtherView(int childPosition, Rect normalRect, RecyclerView parent, RecyclerView.State state, boolean isHorizontal) {
+    protected Point calculateViewDrawRectInflunceByOtherView(Point outPoint, int childPosition, Rect normalRect, RecyclerView parent, RecyclerView.State state, boolean isHorizontal) {
         int childCount = state.getItemCount();
         //当有且只有一项时,不可能存在偏移量,不处理
         if (childCount <= 1) {
@@ -291,14 +318,14 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
         //该headerView可能是当前正在替换旧headerView的头部,也可能是远未达到顶部的headerView
         View itemView = this.searchFirstHeaderView(childPosition + 1, state.getItemCount(), parent);
         //根据布局方向计算并返回固定头部的偏移量
-        return calculateOffsetAccordingOrientation(itemView, normalRect, parent, isHorizontal);
+        return calculateOffsetAccordingOrientation(outPoint, itemView, normalRect, parent, isHorizontal);
     }
 
     /**
      * 更新当前需要绘制View的区域
      *
      * @param outRect 原始需要绘制的区域(没有任何偏移量时的绘制区域)
-     * @param offset  偏移量数据,来自方法 {@link #calculateViewDrawRectInflunceByOtherView(int, Rect, RecyclerView, RecyclerView.State, boolean)}
+     * @param offset  偏移量数据,来自方法 {@link #calculateViewDrawRectInflunceByOtherView(Point, int, Rect, RecyclerView, RecyclerView.State, boolean)}
      */
     protected void updateViewDrawRect(Rect outRect, Point offset) {
         //获取原始区域的宽高
@@ -351,7 +378,7 @@ public class StickHeaderItemDecoration extends RecyclerView.ItemDecoration {
      *
      * @param outRect 暂存变量,没有任何意义,只是用于保存返回的数据;可以是新创建的也可以是任何一个不再存储有用数据的rect
      * @param parent
-     * @param offset  偏移量数据,来自方法 {@link #calculateViewDrawRectInflunceByOtherView(int, Rect, RecyclerView, RecyclerView.State, boolean)}
+     * @param offset  偏移量数据,来自方法 {@link #calculateViewDrawRectInflunceByOtherView(Point, int, Rect, RecyclerView, RecyclerView.State, boolean)}
      */
     protected void calculateParentStartDrawPoint(Rect outRect, RecyclerView parent, Point offset) {
         //计算正常情况下的绘制起点位置

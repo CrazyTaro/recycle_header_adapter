@@ -1,4 +1,4 @@
-package com.henrytaro.ct.ui;
+package com.taro.recycle.ui.main;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,8 +11,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.henrytaro.ct.R;
-import com.henrytaro.ct.other.HeaderAdapterOption;
+import com.taro.recycle.R;
+import com.taro.recycle.ui.other.HeaderAdapterOption;
 import com.taro.headerrecycle.adapter.SimpleRecycleAdapter;
 import com.taro.headerrecycle.helper.RecycleVIewScrollHelper;
 
@@ -45,6 +45,8 @@ public class ScrollActivity extends AppCompatActivity implements RecycleVIewScro
         mScrollHelper.setCheckScrollToTopFirstBottomAfter(false);
         mScrollHelper.setCheckIfItemViewFullRecycleViewForBottom(true);
         mScrollHelper.setCheckIfItemViewFullRecycleViewForTop(true);
+        mScrollHelper.setTopOffsetFaultTolerance(100);
+        mScrollHelper.setBottomFaultTolerance(100);
         mScrollHelper.attachToRecycleView(mRvDisplay);
 
         mLongDataSource = new ArrayList<String>(20);

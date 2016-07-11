@@ -1,10 +1,10 @@
-package com.henrytaro.ct.other;
+package com.taro.recycle.ui.other;
 
 import android.graphics.Color;
 import android.widget.TextView;
 
-import com.henrytaro.ct.R;
-import com.henrytaro.ct.ui.BubbleBoxLayout;
+import com.taro.recycle.R;
+import com.taro.recycle.ui.main.BubbleBoxLayout;
 import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
 import com.taro.headerrecycle.adapter.HeaderRecycleViewHolder;
 

@@ -1,4 +1,4 @@
-package com.henrytaro.ct.other;
+package com.taro.recycle.ui.other;
 
 import android.content.Context;
 import android.support.v7.widget.GridLayoutManager;

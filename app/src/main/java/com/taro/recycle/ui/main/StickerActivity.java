@@ -1,4 +1,4 @@
-package com.henrytaro.ct.ui;
+package com.taro.recycle.ui.main;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -9,8 +9,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.henrytaro.ct.R;
-import com.henrytaro.ct.other.HeaderAdapterOption;
+import com.taro.recycle.R;
+import com.taro.recycle.ui.other.HeaderAdapterOption;
 import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
 import com.taro.headerrecycle.stickerheader.ErrorHeaderItemDecoration;
 import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
@@ -76,6 +76,8 @@ public class StickerActivity extends AppCompatActivity {
         mRvDisplay.setLayoutManager(mLinearLayout);
         mRvDisplay.setPadding(50, 50, 50, 50);
         mRvDisplay.setAdapter(mNormalAdapter);
+
+        mStickDecoration.attachToRecyclerView(mRvDisplay);
     }
 
     @Override

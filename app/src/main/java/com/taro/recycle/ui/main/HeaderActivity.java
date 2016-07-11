@@ -1,4 +1,4 @@
-package com.henrytaro.ct.ui;
+package com.taro.recycle.ui.main;
 
 import android.os.Bundle;
 import android.support.v4.util.ArrayMap;
@@ -12,9 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.henrytaro.ct.R;
-import com.henrytaro.ct.other.GridHeaderRecycleAdapter;
-import com.henrytaro.ct.other.HeaderAdapterOption;
+import com.taro.recycle.R;
+import com.taro.recycle.ui.other.GridHeaderRecycleAdapter;
+import com.taro.recycle.ui.other.HeaderAdapterOption;
 import com.taro.headerrecycle.adapter.ExtraViewWrapAdapter;
 import com.taro.headerrecycle.layoutmanager.HeaderGridLayoutManager;
 import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;

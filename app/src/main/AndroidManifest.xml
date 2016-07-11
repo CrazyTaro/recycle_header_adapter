@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
-    package="com.henrytaro.ct"
+    package="com.taro.recycle"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
@@ -11,18 +11,54 @@
         <!--android:value="d0d3e926d272782c633c512874dca058-->
 
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.main.MainActivity"
             android:label="@string/app_name">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+            <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+            <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.ScrollActivity"/>
-        <activity android:name=".ui.HeaderActivity"/>
-        <activity android:name=".ui.StickerActivity"/>
+        <activity android:name=".ui.main.ScrollActivity"/>
+        <activity android:name=".ui.main.HeaderActivity"/>
+        <activity android:name=".ui.main.StickerActivity"/>
+
+        <!--<activity android:name=".launch.MainActivity"/>-->
+        <activity
+            android:name=".ui.launch.StandardActivity"
+            android:launchMode="standard">
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN"/>-->
+                <!--<action android:name="2_intent_standard"/>-->
+
+                <!--<category android:name="android.intent.category.LAUNCHER"/>-->
+            <!--</intent-filter>-->
+        </activity>
+        <activity
+            android:name=".ui.launch.SingleTopActivity"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="2_intent_single_top"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.launch.SingleTaskActivity"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="2_intent_single_task"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.launch.SingleInstanceActivity"
+            android:launchMode="singleInstance">
+            <intent-filter>
+                <action android:name="2_intent_single_instance"/>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
     </application>
 

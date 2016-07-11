@@ -206,12 +206,12 @@ public class RecycleVIewScrollHelper extends RecyclerView.OnScrollListener {
      * @param recyclerView
      */
     public void attachToRecycleView(RecyclerView recyclerView) {
-        if (mRvScroll != recyclerView) {
+        if (recyclerView != mRvScroll) {
             unAttachToRecycleView();
-        }
-        mRvScroll = recyclerView;
-        if (recyclerView != null) {
-            recyclerView.addOnScrollListener(this);
+            mRvScroll = recyclerView;
+            if (recyclerView != null) {
+                recyclerView.addOnScrollListener(this);
+            }
         }
     }
 

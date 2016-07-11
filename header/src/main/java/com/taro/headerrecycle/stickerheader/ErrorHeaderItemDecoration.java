@@ -84,7 +84,7 @@ public class ErrorHeaderItemDecoration extends StickHeaderItemDecoration {
             if (mIsUpdateDrawRect) {
                 //计算当前headerView是否受到其它View的影响(有可能下一个headerView正在替换当前headerView的位置)
                 //并返回受到影响的偏移量
-                Point offset = this.calculateViewDrawRectInflunceByOtherView(getChildPositionInView(), mOutRect, parent, state, isHorizontal);
+                Point offset = this.calculateViewDrawRectInflunceByOtherView(, getChildPositionInView(), mOutRect, parent, state, isHorizontal);
                 //更新当前绘制区域的偏移量
                 //此处决定了headerView是否显示完全(可能整个绘制区域只是headerView的一部分)
                 this.updateViewDrawRect(mOutRect, offset);

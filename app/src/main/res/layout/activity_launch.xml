@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tv_launch_task_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"/>
+
+    <TextView
+        android:id="@+id/tv_launch_launch_mode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="25sp"/>
+
+
+    <CheckBox
+        android:id="@+id/cb_launch_outside_app"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:text="是否启动外部APP(非同APP内Activity)"/>
+
+    <Button
+        android:id="@+id/btn_launch_standard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="启动standard"
+        android:textSize="15sp"/>
+
+    <Button
+        android:id="@+id/btn_launch_single_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="启动single top"
+        android:textSize="15sp"/>
+
+    <Button
+        android:id="@+id/btn_launch_single_task"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="启动single task"
+        android:textSize="15sp"/>
+
+    <Button
+        android:id="@+id/btn_launch_single_instance"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="启动single instance"
+        android:textSize="15sp"/>
+
+</LinearLayout>

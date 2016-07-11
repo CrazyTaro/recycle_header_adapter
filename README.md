@@ -6,6 +6,7 @@
 - HeaderRecycleAdapter,带头部的adapter
 - RecycleScrollHelper,滑动检测辅助类
 - StickHeaderItemDecoration,固定头部装饰类
+- ExtraViewWrapAdapter,添加头部尾部装饰类
 
 重要类源码在header模块中,app模块为相关的示例实用及引用.需要使用时可只导入header模块.
 
@@ -15,6 +16,7 @@
 - [StickHeaderItemDecoration--RecyclerView使用的固定头部装饰类](http://blog.csdn.net/u011374875/article/details/51744496)
 - [RecycleViewScrollHelper--RecyclerView滑动事件检测的辅助类 ](http://blog.csdn.net/u011374875/article/details/51744448)
 - [HeaderRecycleAdapter--通用的带头部RecycleView.Adapter ](http://blog.csdn.net/u011374875/article/details/51744332)
+- [ExtraViewWrapperAdapter--添加额外头部尾部功能的装饰adapter](http://blog.csdn.net/u011374875/article/details/51882269)
 
 ---
 

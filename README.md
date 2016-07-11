@@ -297,3 +297,36 @@ mRvDisplay.addItemDecoration(mSickDecoration);
 
 #### 示例图片
 ![](https://github.com/CrazyTaro/RecycleViewAdapter/raw/master/screenshot/normalItemDecorationSticker.gif)
+
+---
+
+### ExtraViewWrapperAdapter
+可为`RecycleView`添加额外的headerView及footerView,同时也配置有refreshView及loadView两个独立的view添加(与headerView及footerView分开).
+
+#### 使用方式
+使用方式很简单,需要添加headerView或者footerView时,直接进行添加,然后设置原始数据innerAdatper,如果是实现了`ISpanSizeHandler`及`IStcikerHeaderDecoration`接口的adapter则不需要作额外处理,否则需要考虑一下是否要设置相关的接口实现.
+
+```JAVA
+//设置innerAdapter
+mExtraAdapter = new ExtraViewWrapAdapter(mNormalAdapter);
+//添加headerView
+mExtraAdapter.addHeaderView(R.id.header_view, yourView);
+//使用extraViewWrapperAdapter代码原有的adapter作为recycleView的数据绑定
+rv.setAdapter(mExtraAdapter);
+```
+
+如果不需要添加headerView与footerView,需要添加一个刷新或者是加载的动画界面,可以使用以下方法
+
+```JAVA
+//设置刷新时显示的view
+mExtraAdapter.setRefreshingHeaderView(yourView);
+//使用静态方法设置当前为刷新状态,该方法会自动检测对应的rv(RecycleView)中的adapter是否为ExtraViewWrapperAdapter,然后自动对其进行设置并根据参数调整recycleView(如是否滑动到第一项,参数2)
+ExtraViewWrapAdapter.setRefreshingViewStatus(true,true,rv);
+```
+
+加载使用的view与刷新的view是相同的使用方式.
+
+---
+
+## 示例图片
+![图片](https://github.com/CrazyTaro/RecycleViewAdapter/raw/master/screenshot/extraViewWrapperAdapter.png)

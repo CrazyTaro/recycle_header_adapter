@@ -244,7 +244,7 @@ mScrollHelper.attachToRecycleView(mRvDisplay);
 ---
 
 #### 示例图片
-请参考HeaderRecyleAdatper的图片
+请参考HeaderRecyleAdatper的图片(**请注意弹出的toast**))
 
 ---
 
@@ -253,6 +253,7 @@ mScrollHelper.attachToRecycleView(mRvDisplay);
 
 - 实现`IStickerHeaderDecoration`
 绘制固定头部时,`StickHeaderItemDecoration`完成固定头部的测量绘制,对于固定头部的获取/数据绑定等并不能进行处理,实际上该部分操作也不能由其处理,因此定义了一个接口,用于处理相关的固定头部的数据.
+这个接口是`StickHeaderItemDecoration`所必需的,一般来说对于带头部的Adapter才需要考虑是否需要显示固定头部.所以`HeaderRecycleAdapter`已经默认实现了这个接口,不想自己实现的情况下,直接创建一个`HeaderRecycleAdapter`作为参数即可.
 
 ```JAVA
 public interface IStickerHeaderDecoration {
@@ -289,9 +290,17 @@ StickHeaderItemDecoration mStickDecoration = new StickHeaderItemDecoration(mNorm
 //设置recycleView与之绑定即可
 mRvDisplay.addItemDecoration(mSickDecoration);
 
+//使用 HeaderRecycleAdapter作为参数
+//new StickHedaerItemDecoration(new HeaderRecycleAdapter(params...));
+
 //也可以使用decoration的方法直接绑定recycleView
 //注意两者不同之处在于,对于直接使用recycleView绑定的,一个decoration可以绑定多个recylceView,只要确保不会出错就行;
+//如 mRv1.addItemDecoration(mSickDecoration); 
+//mRv2.addItemDecoration(mSickDecoration);
+//只要确定这个两个recycleView都可以使用这个decoration即可,同样的,切换adapter时decoration也是可以复用的.
+
 //反之使用decoration的方法进行关联的,decoration永远只会关联一个,不会关联多个
+//并且decoration会保留当前的recycleView的引用哦.
 //mStickDecoration.attachToRecyclerView(mRvDisplay);
 ```
 

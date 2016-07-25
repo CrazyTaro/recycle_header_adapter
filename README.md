@@ -186,7 +186,7 @@ public class SimpleAdapterOption extends SimpleRecycleAdapter.SimpleAdapterOptio
 ---
 
 #### 示例图片
-![](https://github.com/CrazyTaro/RecycleViewAdapter/raw/master/screenshot/multiHeaderSticker.gif)
+![](https://github.com/CrazyTaro/RecycleViewAdapter/raw/master/screenshot/normalHeaderRecycleAdapter.gif)
 
 ---
 

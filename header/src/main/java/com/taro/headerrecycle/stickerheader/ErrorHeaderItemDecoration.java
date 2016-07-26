@@ -84,10 +84,10 @@ public class ErrorHeaderItemDecoration extends StickHeaderItemDecoration {
             if (mIsUpdateDrawRect) {
                 //计算当前headerView是否受到其它View的影响(有可能下一个headerView正在替换当前headerView的位置)
                 //并返回受到影响的偏移量
-                Point offset = this.calculateViewDrawRectInflunceByOtherView(, getChildPositionInView(), mOutRect, parent, state, isHorizontal);
+                this.calculateViewDrawRectInflunceByOtherView(mOutPoint, getChildPositionInView(), mOutRect, parent, state, isHorizontal);
                 //更新当前绘制区域的偏移量
                 //此处决定了headerView是否显示完全(可能整个绘制区域只是headerView的一部分)
-                this.updateViewDrawRect(mOutRect, offset);
+                this.updateViewDrawRect(mOutRect, mOutPoint);
 
 
                 //此处不能使用canvas.save()来保存当前的状态再用canvas.restore()回复
@@ -97,7 +97,7 @@ public class ErrorHeaderItemDecoration extends StickHeaderItemDecoration {
                 c.clipRect(mOutRect);
                 //根据recycleView计算当前headerView开始绘制的起点X,Y
                 //此处决定了headerView是否绘制完整
-                this.calculateParentStartDrawPoint(mOutRect, parent, offset);
+                this.calculateParentStartDrawPoint(mOutRect, parent, mOutPoint);
                 //调整canvas的绘制起点
                 c.translate(mOutRect.left, mOutRect.top);
             } else {

@@ -485,15 +485,15 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     @Override
     public boolean isHeaderPosition(int position) {
-        if (isLoadingView(position) || isRefreshingView(position) || isHeaderView(position) || isFooterView(position)) {
-            return false;
-        } else if (mIStickHeaderDecoration != null) {
+        if (mIStickHeaderDecoration != null) {
             return mIStickHeaderDecoration.isHeaderPosition(getInnerAdapterPosition(position));
         } else {
             return false;
         }
     }
 
+    //此方法决定了是否需要显示固定头部,装饰类只需要处理此部分正确返回innerAdapter的位置就可以了
+    //其它的方法都是将position转成正确的innerAdapter的位置信息进行接口回调.
     @Override
     public boolean hasStickHeader(int position) {
         if (isLoadingView(position) || isRefreshingView(position) || isHeaderView(position) || isFooterView(position)) {
@@ -533,7 +533,9 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     @Override
     public boolean isBeenDecorated(int lastDecoratedPosition, int nowDecoratingPosition) {
         if (mIStickHeaderDecoration != null) {
-            return mIStickHeaderDecoration.isBeenDecorated(lastDecoratedPosition, nowDecoratingPosition);
+            int lastInnerPos = getInnerAdapterPosition(lastDecoratedPosition);
+            int nowInnerPos = getInnerAdapterPosition(nowDecoratingPosition);
+            return mIStickHeaderDecoration.isBeenDecorated(lastInnerPos, nowInnerPos);
         } else {
             return false;
         }

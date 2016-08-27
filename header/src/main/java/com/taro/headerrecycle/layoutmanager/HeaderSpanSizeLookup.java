@@ -37,7 +37,6 @@ public class HeaderSpanSizeLookup extends GridLayoutManager.SpanSizeLookup {
      * 设置或更新adapter
      *
      * @param lookup
-     * @return
      */
     public void setISpanSizeLookup(ISpanSizeHandler lookup) {
         mSpanLookup = lookup;

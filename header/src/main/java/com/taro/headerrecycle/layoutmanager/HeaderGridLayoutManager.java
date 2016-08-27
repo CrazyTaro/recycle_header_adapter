@@ -44,7 +44,6 @@ public class HeaderGridLayoutManager extends GridLayoutManager {
      * 设置关联的adapter
      *
      * @param lookup
-     * @return
      */
     public void setISpanSizeHandler(HeaderSpanSizeLookup.ISpanSizeHandler lookup) {
         if (mLookup != null) {

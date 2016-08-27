@@ -8,7 +8,7 @@ import android.view.View;
 /**
  * Created by taro on 16/5/10.
  */
-public class RecycleVIewScrollHelper extends RecyclerView.OnScrollListener {
+public class RecycleViewScrollHelper extends RecyclerView.OnScrollListener {
     private RecyclerView mRvScroll = null;
     private OnScrollDirectionChangedListener mScrollDirectionChangedListener = null;
     //滑动位置变动的监听事件
@@ -35,7 +35,7 @@ public class RecycleVIewScrollHelper extends RecyclerView.OnScrollListener {
      *
      * @param listener {@link OnScrollPositionChangedListener}滑动位置变动监听事件
      */
-    public RecycleVIewScrollHelper(OnScrollPositionChangedListener listener) {
+    public RecycleViewScrollHelper(OnScrollPositionChangedListener listener) {
         mScrollPositionChangedListener = listener;
     }
 
@@ -235,7 +235,7 @@ public class RecycleVIewScrollHelper extends RecyclerView.OnScrollListener {
     }
 
     /**
-     * 设置顶部允许偏移的容差值,此值仅在允许检测满屏时有效,当{@link #setCheckIfItemViewFullRecycleViewForTop(boolean)}设置为true 或者{@link #setCheckIfItemViewFullRecycleViewForBottom(boolean)}设置为true 时有效.<br/>
+     * 设置顶部允许偏移的容差值,此值仅在允许检测满屏时有效,当{@link #setCheckIfItemViewFullRecycleViewForTop(boolean)}设置为true 或者{@link #setCheckIfItemViewFullRecycleViewForBottom(boolean)}设置为true 时有效.<br>
      * 在检测底部滑动时,对顶部的检测会添加此容差值(更容易判断当前第一项childView已超出recycleView的显示范围),用于协助判断是否滑动到底部.
      * 在检测顶部滑动时,对顶部的检测会添加此容差值(更容易判断为滑动到了顶部)
      *
@@ -246,7 +246,7 @@ public class RecycleVIewScrollHelper extends RecyclerView.OnScrollListener {
     }
 
     /**
-     * 设置顶部允许偏移的容差值,此值仅在允许检测满屏时有效,当{@link #setCheckIfItemViewFullRecycleViewForTop(boolean)}设置为true 或者{@link #setCheckIfItemViewFullRecycleViewForBottom(boolean)}设置为true 时有效.<br/>
+     * 设置顶部允许偏移的容差值,此值仅在允许检测满屏时有效,当{@link #setCheckIfItemViewFullRecycleViewForTop(boolean)}设置为true 或者{@link #setCheckIfItemViewFullRecycleViewForBottom(boolean)}设置为true 时有效.<br>
      * 在检测底部滑动时,对底部的检测会添加此容差值(更容易判断当前最后一项childView已超出recycleView的显示范围),用于协助判断是否滑动到顶部.
      * 在检测顶部滑动时,对底部的检测会添加此容差值(更容易判断为滑动到了底部)
      *
@@ -257,10 +257,10 @@ public class RecycleVIewScrollHelper extends RecyclerView.OnScrollListener {
     }
 
     /**
-     * 设置是否需要检测recycleView是否为满屏的itemView时才回调事件.<br/>
-     * <p/>
-     * 当RecycleView的childView数量很少时,有可能RecycleView已经显示出所有的itemView,此时不存在向上滑动的可能.<br/>
-     * 若设置当前值为true时,只有在RecycleView无法完全显示所有的itemView时,才会回调滑动到顶部的事件;否则将不处理;<br/>
+     * 设置是否需要检测recycleView是否为满屏的itemView时才回调事件.<br>
+     * <p>
+     * 当RecycleView的childView数量很少时,有可能RecycleView已经显示出所有的itemView,此时不存在向上滑动的可能.<br>
+     * 若设置当前值为true时,只有在RecycleView无法完全显示所有的itemView时,才会回调滑动到顶部的事件;否则将不处理;<br>
      * 若设置为false则反之,不管任何时候只要滑动并顶部item显示时都会回调滑动事件
      *
      * @param isNeedToCheck true为当检测是否满屏显示;false不检测,直接回调事件
@@ -270,9 +270,9 @@ public class RecycleVIewScrollHelper extends RecyclerView.OnScrollListener {
     }
 
     /**
-     * 设置是否需要检测recycleView是否为满屏的itemView时才回调事件.</br>
-     * <p/>
-     * 当RecycleView的childView数量很少时,有可能RecycleView已经显示出所有的itemView,此时不存在向下滑动的可能.
+     * 设置是否需要检测recycleView是否为满屏的itemView时才回调事件.<br>
+     * <p>
+     * 当RecycleView的childView数量很少时,有可能RecycleView已经显示o出所有的itemView,此时不存在向下滑动的可能.
      * 若设置当前值为true时,只有在RecycleView无法完全显示所有的itemView时,才会回调滑动到底部的事件;否则将不处理;
      * 若设置为false则反之,不管任何时候只要滑动到底部都会回调滑动事件
      *
@@ -330,8 +330,8 @@ public class RecycleVIewScrollHelper extends RecyclerView.OnScrollListener {
         /**
          * 滑动方向改变时监听事件,当两个参数值都为0时,数据变动重新layout
          *
-         * @param scrollVertical   竖直方向的滑动方向,向上>0,向下<0,不动(水平滑动时)=0
-         * @param scrollHorizontal 水平方向的滑动方向,向左>0,向右<0,不动(竖直滑动时)=0
+         * @param scrollVertical   竖直方向的滑动方向,向上&lt;0,向下&gt;0,不动(水平滑动时)=0
+         * @param scrollHorizontal 水平方向的滑动方向,向左&lt;0,向右&gt;0,不动(竖直滑动时)=0
          */
         public void onScrollDirectionChanged(int scrollHorizontal, int scrollVertical);
     }

@@ -11,10 +11,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.taro.headerrecycle.helper.RecycleViewScrollHelper;
 import com.taro.recycle.R;
 import com.taro.recycle.ui.other.HeaderAdapterOption;
 import com.taro.headerrecycle.adapter.SimpleRecycleAdapter;
-import com.taro.headerrecycle.helper.RecycleVIewScrollHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * Created by taro on 16/6/22.
  */
-public class ScrollActivity extends AppCompatActivity implements RecycleVIewScrollHelper.OnScrollPositionChangedListener {
+public class ScrollActivity extends AppCompatActivity implements RecycleViewScrollHelper.OnScrollPositionChangedListener {
     RecyclerView mRvDisplay = null;
     FloatingActionButton mFAB = null;
 
@@ -30,7 +30,7 @@ public class ScrollActivity extends AppCompatActivity implements RecycleVIewScro
     List<String> mShortDataSource = null;
     SimpleRecycleAdapter<String> mSimpleAdapter = null;
     LinearLayoutManager mLinearLayout = null;
-    RecycleVIewScrollHelper mScrollHelper = null;
+    RecycleViewScrollHelper mScrollHelper = null;
     boolean mIsUsingLongDataSource = true;
 
     @Override
@@ -40,7 +40,7 @@ public class ScrollActivity extends AppCompatActivity implements RecycleVIewScro
         mRvDisplay = (RecyclerView) findViewById(R.id.rv_test);
         mFAB = (FloatingActionButton) findViewById(R.id.fab_test);
 
-        mScrollHelper = new RecycleVIewScrollHelper(this);
+        mScrollHelper = new RecycleViewScrollHelper(this);
         mScrollHelper.setCheckScrollToTopBottomTogether(false);
         mScrollHelper.setCheckScrollToTopFirstBottomAfter(false);
         mScrollHelper.setCheckIfItemViewFullRecycleViewForBottom(true);

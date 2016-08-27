@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'//添加
 
 android {
     compileSdkVersion 23
@@ -23,6 +24,16 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:recyclerview-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
+}
+
+//添加
+publish {
+    userOrg = 'crazytaro'//bintray.com用户名
+    groupId = 'com.taro'//jcenter上的路径
+    artifactId = 'headerrecycle'//项目名称
+    publishVersion = '1.0.0'//版本号
+    desc = 'a project about extended recycle adapter for adding header and grouping items easily'//描述，不重要
+    website = 'https://github.com/CrazyTaro/RecycleViewAdapter'//网站，不重要；尽量模拟github上的地址，例如我这样的；当然你有地址最好了
 }
 
 //打jar包方式1,其实要打出jar包,不能更改参数build/intermediates/bundles/release/

@@ -1,4 +1,25 @@
-# RecycleViewAdatper
+#recycle_header_adapter
+
+这是一个可设置**带头部及分组显示item**的recycleAdapter,并提供**固定头部显示**,支持LinearLayout及GridLayout.仅需要添加数据和实现数据绑定,不需要对recycleView进行额外的修改或操作.同时头/尾部的添加支持任何adapter.
+
+## 概述
+此项目包括三个内容
+
+- HeaderRecycleAdapter,带头部的adapter
+- RecycleScrollHelper,滑动检测辅助类
+- StickHeaderItemDecoration,固定头部装饰类
+- ExtraViewWrapAdapter,添加额外头部尾部装饰类
+
+> **有任何更新需要或者更好的欢迎提交issue或者联系`mg199303@163.com`,建议直接提交issue,会短期就查看一次的.谢谢~**
+
+---
+
+## Gradle引用
+```
+compile 'com.taro:headerrecycle:1.0.0'
+```
+
+---
 
 ## 概述
 此项目包括三个内容

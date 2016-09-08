@@ -1,15 +1,19 @@
 package com.taro.headerrecycle.adapter;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Point;
+import android.os.Build;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
 import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
+import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,12 +28,14 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     //头部数据
     protected Map<Integer, H> mHeaderMap;
     protected Context mApplicationContext;
-    protected IHeaderAdapterOption mOptions = null;
+    protected IHeaderAdapterOption<T, H> mOptions = null;
     private OnHeaderParamsUpdateListener mParamsUpdateListener = null;
+    private RecyclerView mParentRecycle = null;
 
     protected boolean mIsShowHeader = true;
     protected int mCount = 0;
-
+    //最后一次调整后的count数量
+    private int mLastAdjustCount = IAdjustCountHeaderAdapterOption.NO_USE_ADJUST_COUNT;
 
     /**
      * 创建可以显示分组头部的recycleAdapter,其中Context与option不可为空
@@ -186,6 +192,9 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     public HeaderRecycleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         int layoutId = mOptions.getLayoutId(viewType);
         View rootView = LayoutInflater.from(mApplicationContext).inflate(layoutId, parent, false);
+        if (mOptions instanceof IAdjustCountHeaderAdapterOption) {
+            ((IAdjustCountHeaderAdapterOption) mOptions).onCreateViewEverytime(parent, this);
+        }
         return new HeaderRecycleViewHolder(this, rootView);
     }
 
@@ -208,9 +217,46 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override
     public int getItemCount() {
-        return mCount;
+        int adjustCount = mCount;
+        if (mOptions instanceof IAdjustCountHeaderAdapterOption) {
+            IAdjustCountHeaderAdapterOption justOption = (IAdjustCountHeaderAdapterOption) mOptions;
+            adjustCount = justOption.getAdjustCount();
+            //当item数量在有效范围内才会进行调整
+            if (adjustCount < 0 || adjustCount > mCount) {
+                adjustCount = mCount;
+            }
+            if (mLastAdjustCount != adjustCount) {
+                //记录最后一次调整的item数量
+                mLastAdjustCount = adjustCount;
+                try {
+                    //获取state
+                    Field stateField = RecyclerView.class.getDeclaredField("mState");
+                    stateField.setAccessible(true);
+                    Object state = stateField.get(mParentRecycle);
+
+                    //获取state的mItemCount字段
+                    Field itemCountField = RecyclerView.State.class.getDeclaredField("mItemCount");
+                    itemCountField.setAccessible(true);
+
+                    //更改itemCount
+                    itemCountField.setInt(state, adjustCount);
+                    Log.i("layout", "success");
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    e.printStackTrace();
+                    Log.i("layout", "fail");
+                }
+            }
+        }
+        return adjustCount;
+    }
+
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        mParentRecycle = recyclerView;
     }
 
     /**
@@ -386,7 +432,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     @Override
     public void setHeaderView(int position, int headerViewTag, RecyclerView parent, View headerView) {
         Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
-        Object headerObj = mHeaderMap.get(p.x);
+        H headerObj = mHeaderMap.get(p.x);
         HeaderRecycleViewHolder holder = (HeaderRecycleViewHolder) headerView.getTag();
         if (holder == null) {
             holder = new HeaderRecycleViewHolder(this, headerView);
@@ -425,11 +471,47 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         return 1;
     }
 
+    /**
+     * @param <T> 其中参数T为每个item对应的设置的数据类型
+     * @param <H> 参数H为每个header对应设置的数据类型
+     */
+    public interface IAdjustCountHeaderAdapterOption<T, H> extends IHeaderAdapterOption<T, H> {
+        /**
+         * 无效的item长度,使用此值时不会改变原来的item长度
+         */
+        public static final int NO_USE_ADJUST_COUNT = -1;
+
+        /**
+         * 设置调整后需要显示的itemCount.
+         *
+         * @param adjustCount count必须小于原始添加数据的量(否则多出的数据根本不可能找到填充的对象), 同时也必须大于1才有效.返回负数无效, 将使用原数据量.
+         *                    默认值为负数{@link #NO_USE_ADJUST_COUNT}
+         */
+        public void setAdjustCount(int adjustCount);
+
+        /**
+         * 返回调整后需要显示的itemCount.
+         *
+         * @return 返回的count必须小于原始添加数据的量(否则多出的数据根本不可能找到填充的对象), 同时也必须大于1才有效.返回负数无效, 将使用原数据量.
+         * 默认值为负数{@link #NO_USE_ADJUST_COUNT}
+         */
+        public int getAdjustCount();
+
+        /**
+         * 每一次当itemView被创建的时候此方法会被回调,建议在这个地方根据parentView进行计算并设置需要调整的itemCount
+         *
+         * @param parentView 此处为RecycleView
+         * @param adapter    适配器
+         */
+        public void onCreateViewEverytime(ViewGroup parentView, HeaderRecycleAdapter adapter);
+    }
+
 
     /**
      * 带头部的adapter配置接口
-     * 其中参数T为每个item对应的设置的数据类型
-     * 参数H为每个header对应设置的数据类型
+     *
+     * @param <T> 其中参数T为每个item对应的设置的数据类型
+     * @param <H> 参数H为每个header对应设置的数据类型
      */
     public interface IHeaderAdapterOption<T, H> {
         /**

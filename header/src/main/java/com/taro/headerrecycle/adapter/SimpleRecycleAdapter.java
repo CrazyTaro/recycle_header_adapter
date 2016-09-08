@@ -1,6 +1,7 @@
 package com.taro.headerrecycle.adapter;
 
 import android.content.Context;
+import android.view.ViewGroup;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.List;
  * Created by taro on 16/4/19.
  */
 public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T, Object> {
+    private boolean mIsUseDynamicCount = false;
+    private int mDynamicCount = 0;
     private List<T> mItemList = null;
 
     /**
@@ -64,7 +67,8 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T, Object> {
     /**
      * 继承自 IHeaderAdapterOption 接口的简单Adapter配置抽象类
      */
-    public static abstract class SimpleAdapterOption<T> implements IHeaderAdapterOption<T, Object> {
+    public static abstract class SimpleAdapterOption<T> implements IAdjustCountHeaderAdapterOption<T, Object> {
+        private int mAdjustCount = -1;
 
         @Override
         public int getItemViewType(int position, int groupId, int childId, boolean isHeaderItem, boolean isShowHeader) {
@@ -84,6 +88,21 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T, Object> {
         @Override
         public void setViewHolder(int groupId, int childId, int position, T itemData, HeaderRecycleViewHolder holder) {
             setViewHolder(itemData, position, holder);
+        }
+
+        @Override
+        public int getAdjustCount() {
+            return mAdjustCount;
+        }
+
+        @Override
+        public void setAdjustCount(int adjustCount) {
+            mAdjustCount =adjustCount;
+        }
+
+        @Override
+        public void onCreateViewEverytime(ViewGroup parentView, HeaderRecycleAdapter adapter) {
+
         }
 
         /**

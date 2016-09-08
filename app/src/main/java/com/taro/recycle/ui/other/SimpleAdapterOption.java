@@ -1,4 +1,4 @@
-package com.taro.recycle.ui.main;
+package com.taro.recycle.ui.other;
 
 import com.taro.recycle.R;
 import com.taro.headerrecycle.adapter.HeaderRecycleViewHolder;

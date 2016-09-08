@@ -1,8 +1,10 @@
 package com.taro.recycle.ui.other;
 
 import android.graphics.Color;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.taro.headerrecycle.adapter.SimpleRecycleAdapter;
 import com.taro.recycle.R;
 import com.taro.recycle.ui.main.BubbleBoxLayout;
 import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
@@ -11,9 +13,10 @@ import com.taro.headerrecycle.adapter.HeaderRecycleViewHolder;
 /**
  * Created by taro on 16/6/22.
  */
-public class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption<String, String> {
+public class HeaderAdapterOption implements HeaderRecycleAdapter.IAdjustCountHeaderAdapterOption<String, String> {
     private boolean mIsMultiType = false;
     private boolean mIsSetBgColor = false;
+    public int mAdjustCount = NO_USE_ADJUST_COUNT;
 
     public HeaderAdapterOption(boolean isMultiType, boolean isSetBgColor) {
         mIsMultiType = isMultiType;
@@ -98,5 +101,23 @@ public class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterO
         if (mIsSetBgColor) {
             holder.getRootView().setBackgroundColor(Color.parseColor("#99cc99"));
         }
+
+        if (holder.getAdatper() instanceof SimpleRecycleAdapter) {
+            mAdjustCount = 5;
+        }
+    }
+
+    @Override
+    public int getAdjustCount() {
+        return mAdjustCount;
+    }
+
+    @Override
+    public void setAdjustCount(int adjustCount) {
+        mAdjustCount=adjustCount;
+    }
+
+    @Override
+    public void onCreateViewEverytime(ViewGroup parentView, HeaderRecycleAdapter adapter) {
     }
 }

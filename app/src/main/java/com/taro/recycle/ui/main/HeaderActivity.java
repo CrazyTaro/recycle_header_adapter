@@ -72,7 +72,7 @@ public class HeaderActivity extends AppCompatActivity implements HeaderRecycleVi
 
 
         List<String> itemList = new ArrayList<String>();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 10; i++) {
             itemList.add("single child - " + i);
         }
 
@@ -197,7 +197,7 @@ public class HeaderActivity extends AppCompatActivity implements HeaderRecycleVi
                 mNormalAdapter.notifyDataSetChanged();
                 break;
 
-                //GridHeaderRecycleAdapter
+            //GridHeaderRecycleAdapter
 //                mGridHeaderAdapter.setHeaderAdapterOption(new HeaderAdapterOption(false, true));
 //                mRvDisplay.setLayoutManager(mGridHeaderAdapter.getUsingLayoutManager());
 //                mRvDisplay.setAdapter(mGridHeaderAdapter);

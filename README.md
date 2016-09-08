@@ -241,6 +241,10 @@ mScrollHelper.setBottomFaultTolerance(100);
 mScrollHelper.attachToRecycleView(mRvDisplay);
 ```
 
+请注意,**scrollHelper是可以被复用的**,也就是说可以通过`helper.attachToRecycleView()`方法绑定到其它的RecycleView,但是同样存在的问题是,**一个scrollHelper只能绑定一个RecycleView,不能绑定多个**.
+
+这是因为helper中回调接口时需要使用到绑定的recycleView,并且helper中只保存了一个recycleView.**重复绑定recyleView时会原有的会被替换.**
+
 ---
 
 #### 示例图片

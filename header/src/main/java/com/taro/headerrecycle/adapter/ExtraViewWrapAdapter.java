@@ -203,7 +203,7 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     }
 
     /**
-     * 获取当前WrapAdapter位置在InnerAdapter中对应的位置,即除去headerView及refreshView<br/>
+     * 获取当前WrapAdapter位置在InnerAdapter中对应的位置,即除去headerView及refreshView<br>
      *
      * @param wrapAdapterPosition 当前WrapAdapter的位置
      * @return 当无法得到内部InnerAdapter中对应的位置时(可能是header或者footer或者innerAdapter为null等), 返回-1

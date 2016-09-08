@@ -30,7 +30,7 @@ public class RecycleViewOnClickHelper implements RecyclerView.OnItemTouchListene
 
     public void attachToRecycleView(RecyclerView rv) {
         if (mRvTarget != rv) {
-            unAttachToReycleView();
+            detachToRecycleView();
         }
         mRvTarget = rv;
         if (mRvTarget != null) {
@@ -38,7 +38,7 @@ public class RecycleViewOnClickHelper implements RecyclerView.OnItemTouchListene
         }
     }
 
-    public void unAttachToReycleView() {
+    public void detachToRecycleView() {
         if (mRvTarget != null) {
             mRvTarget.removeOnItemTouchListener(this);
         }
@@ -95,7 +95,7 @@ public class RecycleViewOnClickHelper implements RecyclerView.OnItemTouchListene
             }
             RecyclerView.ViewHolder holder = mRvTarget.getChildViewHolder(child);
             int position = mRvTarget.getChildAdapterPosition(child);
-            if (child != null && holder != null) {
+            if (holder != null) {
                 if (mOnTouchListener != null) {
                     mOnTouchListener.onItemClick(child, position, holder);
                 } else if (mItemClickListener != null) {

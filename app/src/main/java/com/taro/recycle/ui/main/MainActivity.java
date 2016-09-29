@@ -16,6 +16,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button mBtnHeader;
     Button mBtnScroll;
     Button mBtnSticker;
+    Button mBtnAdjust;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -24,10 +25,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBtnHeader = (Button) findViewById(R.id.btn_main_header);
         mBtnScroll = (Button) findViewById(R.id.btn_main_scroll);
         mBtnSticker = (Button) findViewById(R.id.btn_main_sticker);
+        mBtnAdjust = (Button) findViewById(R.id.btn_main_adjust);
 
         mBtnHeader.setOnClickListener(this);
         mBtnScroll.setOnClickListener(this);
         mBtnSticker.setOnClickListener(this);
+        mBtnAdjust.setOnClickListener(this);
     }
 
     @Override
@@ -44,6 +47,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_main_sticker:
                 Intent stickerIntent = new Intent(this, StickerActivity.class);
                 this.startActivity(stickerIntent);
+                break;
+            case R.id.btn_main_adjust:
+                Intent adjustIntent = new Intent(this, AdjustCountActivity.class);
+                this.startActivity(adjustIntent);
                 break;
         }
     }

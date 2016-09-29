@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_adjust_default"
+        android:orderInCategory="100"
+        android:title="调整值设置为默认"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_adjust_zero"
+        android:orderInCategory="100"
+        android:title="调整值设置为0"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_adjust_beyond"
+        android:orderInCategory="100"
+        android:title="调整值设置为超item数量"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_adjust_one_second"
+        android:orderInCategory="100"
+        android:title="调整值设置为1/2数量"
+        app:showAsAction="never"/>
+</menu>

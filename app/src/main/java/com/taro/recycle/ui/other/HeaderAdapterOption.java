@@ -10,10 +10,12 @@ import com.taro.recycle.ui.main.BubbleBoxLayout;
 import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
 import com.taro.headerrecycle.adapter.HeaderRecycleViewHolder;
 
+import static com.taro.headerrecycle.adapter.HeaderRecycleAdapter.IAdjustCountOption.NO_USE_ADJUST_COUNT;
+
 /**
  * Created by taro on 16/6/22.
  */
-public class HeaderAdapterOption implements HeaderRecycleAdapter.IAdjustCountHeaderAdapterOption<String, String> {
+public class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption<String, String>, HeaderRecycleAdapter.IAdjustCountOption {
     private boolean mIsMultiType = false;
     private boolean mIsSetBgColor = false;
     public int mAdjustCount = NO_USE_ADJUST_COUNT;
@@ -114,7 +116,7 @@ public class HeaderAdapterOption implements HeaderRecycleAdapter.IAdjustCountHea
 
     @Override
     public void setAdjustCount(int adjustCount) {
-        mAdjustCount=adjustCount;
+        mAdjustCount = adjustCount;
     }
 
     @Override

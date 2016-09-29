@@ -4,16 +4,17 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Point;
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
 import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
+import com.taro.headerrecycle.utils.RecyclerViewUtil;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,12 +23,14 @@ import java.util.Map;
  * Created by taro on 16/4/19.
  */
 public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecycleViewHolder> implements StickHeaderItemDecoration.IStickerHeaderDecoration, HeaderSpanSizeLookup.ISpanSizeHandler {
+    private static final int FIRST_LOAD_ITEM_COUNT = Integer.MAX_VALUE;
+
     //分组数据列表
     protected List<List<T>> mGroupList;
     protected List<Integer> mEachGroupCountList;
     //头部数据
     protected Map<Integer, H> mHeaderMap;
-    protected Context mApplicationContext;
+    protected LayoutInflater mInflater;
     protected IHeaderAdapterOption<T, H> mOptions = null;
     private OnHeaderParamsUpdateListener mParamsUpdateListener = null;
     private RecyclerView mParentRecycle = null;
@@ -35,25 +38,52 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     protected boolean mIsShowHeader = true;
     protected int mCount = 0;
     //最后一次调整后的count数量
-    private int mLastAdjustCount = IAdjustCountHeaderAdapterOption.NO_USE_ADJUST_COUNT;
+    private int mLastAdjustCount = FIRST_LOAD_ITEM_COUNT;
+
+
+    public HeaderRecycleAdapter(@NonNull Context context) {
+        this(context, null, null, null);
+    }
 
     /**
      * 创建可以显示分组头部的recycleAdapter,其中Context与option不可为空
      *
-     * @param context
+     * @param context   布局加载对象
      * @param option    分组头部需要的配置接口
      * @param groupList 分组数据
      * @param headerMap 分组头部匹配的Map
      */
-    public HeaderRecycleAdapter(Context context, IHeaderAdapterOption<T, H> option, List<List<T>> groupList, Map<Integer, H> headerMap) {
-        if (context == null || option == null) {
-            throw new NullPointerException("context and option can not be null");
-        }
-        mApplicationContext = context.getApplicationContext();
+    public HeaderRecycleAdapter(@NonNull Context context, @Nullable IHeaderAdapterOption<T, H> option, @Nullable List<List<T>> groupList, @Nullable Map<Integer, H> headerMap) {
+        this.init(LayoutInflater.from(context), option, groupList, headerMap);
+    }
+
+    /**
+     * 创建可以显示分组头部的recycleAdapter,其中Context与option不可为空
+     *
+     * @param inflater  布局加载对象
+     * @param option    分组头部需要的配置接口
+     * @param groupList 分组数据
+     * @param headerMap 分组头部匹配的Map
+     */
+    public HeaderRecycleAdapter(@NonNull LayoutInflater inflater, @Nullable IHeaderAdapterOption<T, H> option, @Nullable List<List<T>> groupList, @Nullable Map<Integer, H> headerMap) {
+        this.init(inflater, option, groupList, headerMap);
+    }
+
+    /**
+     * 创建可以显示分组头部的recycleAdapter,其中Context与option不可为空
+     *
+     * @param inflater  布局加载对象
+     * @param option    分组头部需要的配置接口
+     * @param groupList 分组数据
+     * @param headerMap 分组头部匹配的Map
+     */
+    private void init(@NonNull LayoutInflater inflater, @Nullable IHeaderAdapterOption<T, H> option, @Nullable List<List<T>> groupList, @Nullable Map<Integer, H> headerMap) {
+        mInflater = inflater;
         mOptions = option;
         mHeaderMap = headerMap;
         this.setGroupList(groupList);
     }
+
 
     /**
      * 设置或者更新adapter的option
@@ -63,6 +93,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     public void setHeaderAdapterOption(IHeaderAdapterOption option) {
         if (option != null) {
             this.mOptions = option;
+
         }
     }
 
@@ -145,6 +176,15 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     }
 
     /**
+     * 获取adapter中原始的itemCount
+     *
+     * @return
+     */
+    public int getOriginalItemCount() {
+        return mCount;
+    }
+
+    /**
      * 设置分组灵气
      *
      * @param groupList
@@ -191,9 +231,9 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     @Override
     public HeaderRecycleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         int layoutId = mOptions.getLayoutId(viewType);
-        View rootView = LayoutInflater.from(mApplicationContext).inflate(layoutId, parent, false);
-        if (mOptions instanceof IAdjustCountHeaderAdapterOption) {
-            ((IAdjustCountHeaderAdapterOption) mOptions).onCreateViewEverytime(parent, this);
+        View rootView = mInflater.inflate(layoutId, parent, false);
+        if (mOptions instanceof IAdjustCountOption) {
+            ((IAdjustCountOption) mOptions).onCreateViewEverytime(parent, this);
         }
         return new HeaderRecycleViewHolder(this, rootView);
     }
@@ -221,33 +261,40 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     @Override
     public int getItemCount() {
         int adjustCount = mCount;
-        if (mOptions instanceof IAdjustCountHeaderAdapterOption) {
-            IAdjustCountHeaderAdapterOption justOption = (IAdjustCountHeaderAdapterOption) mOptions;
+        //第一次加载时,lastAdjustCount都必定更新为当前的itemCount
+        if (mLastAdjustCount == FIRST_LOAD_ITEM_COUNT) {
+            mLastAdjustCount = mCount;
+        }
+        if (mOptions instanceof IAdjustCountOption) {
+            IAdjustCountOption justOption = (IAdjustCountOption) mOptions;
             adjustCount = justOption.getAdjustCount();
             //当item数量在有效范围内才会进行调整
             if (adjustCount < 0 || adjustCount > mCount) {
                 adjustCount = mCount;
             }
             if (mLastAdjustCount != adjustCount) {
-                //记录最后一次调整的item数量
-                mLastAdjustCount = adjustCount;
-                try {
-                    //获取state
-                    Field stateField = RecyclerView.class.getDeclaredField("mState");
-                    stateField.setAccessible(true);
-                    Object state = stateField.get(mParentRecycle);
-
-                    //获取state的mItemCount字段
-                    Field itemCountField = RecyclerView.State.class.getDeclaredField("mItemCount");
-                    itemCountField.setAccessible(true);
-
-                    //更改itemCount
-                    itemCountField.setInt(state, adjustCount);
-                    Log.i("layout", "success");
-                } catch (NoSuchFieldException | IllegalAccessException e) {
-                    e.printStackTrace();
-                    Log.i("layout", "fail");
+                int result = RecyclerViewUtil.setRecyclerViewStateItemCount(adjustCount, mParentRecycle);
+                if (result >= 0) {
+                    //记录最后一次调整的item数量
+                    mLastAdjustCount = adjustCount;
                 }
+//                try {
+//                    //获取state
+//                    Field stateField = RecyclerView.class.getDeclaredField("mState");
+//                    stateField.setAccessible(true);
+//                    Object state = stateField.get(mParentRecycle);
+//
+//                    //获取state的mItemCount字段
+//                    Field itemCountField = RecyclerView.State.class.getDeclaredField("mItemCount");
+//                    itemCountField.setAccessible(true);
+//
+//                    //更改itemCount
+//                    itemCountField.setInt(state, adjustCount);
+//                    Log.i("layout", "success");
+//                } catch (NoSuchFieldException | IllegalAccessException e) {
+//                    e.printStackTrace();
+//                    Log.i("layout", "fail");
+//                }
             }
         }
         return adjustCount;
@@ -425,7 +472,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
 
     @Override
     public View getHeaderView(int position, int headerViewTag, RecyclerView parent) {
-        View itemView = LayoutInflater.from(mApplicationContext).inflate(headerViewTag, parent, false);
+        View itemView = mInflater.inflate(headerViewTag, parent, false);
         return itemView;
     }
 
@@ -472,10 +519,9 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     }
 
     /**
-     * @param <T> 其中参数T为每个item对应的设置的数据类型
-     * @param <H> 参数H为每个header对应设置的数据类型
+     * 调整界面显示的item数接口
      */
-    public interface IAdjustCountHeaderAdapterOption<T, H> extends IHeaderAdapterOption<T, H> {
+    public interface IAdjustCountOption {
         /**
          * 无效的item长度,使用此值时不会改变原来的item长度
          */

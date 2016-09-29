@@ -1,6 +1,9 @@
 package com.taro.headerrecycle.adapter;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import java.util.LinkedList;
@@ -9,25 +12,50 @@ import java.util.List;
 /**
  * Created by taro on 16/4/19.
  */
-public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T, Object> {
-    private boolean mIsUseDynamicCount = false;
-    private int mDynamicCount = 0;
+public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
     private List<T> mItemList = null;
 
     /**
      * 创建简单的不带header的adapter
      *
      * @param context
+     */
+    public SimpleRecycleAdapter(@NonNull Context context) {
+        super(context);
+        this.init(null);
+    }
+
+    /**
+     * 创建简单的不带header的adapter
+     *
+     * @param context  布局加载
      * @param option   item加载配置接口
      * @param itemList item数据列表
      */
-    public SimpleRecycleAdapter(Context context, IHeaderAdapterOption option, List<T> itemList) {
+    public SimpleRecycleAdapter(@NonNull Context context, @Nullable IHeaderAdapterOption option, @Nullable List<T> itemList) {
         super(context, option, null, null);
-        mItemList = itemList;
+        this.init(itemList);
+    }
 
+    /**
+     * 创建简单的不带header的adapter
+     *
+     * @param inflater 布局加载
+     * @param option   item加载配置接口
+     * @param itemList item数据列表
+     */
+    public SimpleRecycleAdapter(@NonNull LayoutInflater inflater, @Nullable IHeaderAdapterOption
+            option, @Nullable List<T> itemList) {
+        super(inflater, option, null, null);
+        this.init(itemList);
+    }
+
+    private void init(@Nullable List<T> itemList) {
+        mItemList = itemList;
         this.setIsShowHeader(false);
         this.setItemList(itemList);
     }
+
 
     /**
      * 获取item展示数据列表
@@ -67,7 +95,7 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T, Object> {
     /**
      * 继承自 IHeaderAdapterOption 接口的简单Adapter配置抽象类
      */
-    public static abstract class SimpleAdapterOption<T> implements IAdjustCountHeaderAdapterOption<T, Object> {
+    public static abstract class SimpleAdapterOption<T> implements IHeaderAdapterOption<T, Object>, IAdjustCountOption {
         private int mAdjustCount = -1;
 
         @Override
@@ -97,7 +125,7 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter<T, Object> {
 
         @Override
         public void setAdjustCount(int adjustCount) {
-            mAdjustCount =adjustCount;
+            mAdjustCount = adjustCount;
         }
 
         @Override

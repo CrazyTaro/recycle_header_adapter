@@ -12,6 +12,9 @@ import java.util.Map;
 
 /**
  * Created by taro on 16/4/28.
+ * 封装了gridLayoutManager的adapter,使用时recyclerView的GridlayoutManager需要使用此类{@link #createHeaderGridLayoutManager(Context, int, int)}进行创建;<br>
+ * 不推荐使用此类,使用{@link com.taro.headerrecycle.layoutmanager.HeaderGridLayoutManager}代替普通的GridlayoutManager进行布局.<br>
+ * 该layoutManager仅仅用于头部item的布局,并不会影响其它功能及使用.
  */
 public class GridHeaderRecycleAdapter<T, H> extends HeaderRecycleAdapter<T, H> {
     private HeaderSpanSizeLookup mLookup = null;

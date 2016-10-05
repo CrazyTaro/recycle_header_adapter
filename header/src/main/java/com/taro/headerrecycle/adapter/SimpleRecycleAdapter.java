@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
-import android.view.ViewGroup;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +31,7 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
      * @param option   item加载配置接口
      * @param itemList item数据列表
      */
-    public SimpleRecycleAdapter(@NonNull Context context, @Nullable IHeaderAdapterOption option, @Nullable List<T> itemList) {
+    public SimpleRecycleAdapter(@NonNull Context context, @Nullable IHeaderAdapterOption<T, ? extends Object> option, @Nullable List<T> itemList) {
         super(context, option, null, null);
         this.init(itemList);
     }
@@ -44,8 +43,7 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
      * @param option   item加载配置接口
      * @param itemList item数据列表
      */
-    public SimpleRecycleAdapter(@NonNull LayoutInflater inflater, @Nullable IHeaderAdapterOption
-            option, @Nullable List<T> itemList) {
+    public SimpleRecycleAdapter(@NonNull LayoutInflater inflater, @Nullable IHeaderAdapterOption<T, ? extends Object> option, @Nullable List<T> itemList) {
         super(inflater, option, null, null);
         this.init(itemList);
     }
@@ -55,7 +53,6 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
         this.setIsShowHeader(false);
         this.setItemList(itemList);
     }
-
 
     /**
      * 获取item展示数据列表
@@ -126,11 +123,6 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
         @Override
         public void setAdjustCount(int adjustCount) {
             mAdjustCount = adjustCount;
-        }
-
-        @Override
-        public void onCreateViewEverytime(ViewGroup parentView, HeaderRecycleAdapter adapter) {
-
         }
 
         /**

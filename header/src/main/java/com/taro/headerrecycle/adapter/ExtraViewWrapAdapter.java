@@ -170,7 +170,7 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
     /**
      * 设置内置的innerAdapter,不可为null
      *
-     * @param innerAdapter recycleView.Adapter,若该adapter已经实现了 {@link StickHeaderItemDecoration.IStickerHeaderDecoration}或者是{@link com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup.ISpanSizeHandler}
+     * @param innerAdapter recycleView.Adapter,若该adapter已经实现了 {@link StickHeaderItemDecoration.IStickerHeaderDecoration}或者是{@link HeaderSpanSizeLookup.ISpanSizeHandler}
      *                     将直接引用此实例,不需要再重新设置一次两个接口
      */
     public void setInnerAdapter(@NonNull RecyclerView.Adapter innerAdapter) {

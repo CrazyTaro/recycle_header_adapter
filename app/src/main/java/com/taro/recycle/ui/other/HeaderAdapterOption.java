@@ -1,6 +1,8 @@
 package com.taro.recycle.ui.other;
 
 import android.graphics.Color;
+import android.support.annotation.NonNull;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -120,6 +122,7 @@ public class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterO
     }
 
     @Override
-    public void onCreateViewEverytime(ViewGroup parentView, HeaderRecycleAdapter adapter) {
+    public void onCreateViewEverytime(@NonNull View itemView, @NonNull ViewGroup parentView, @NonNull HeaderRecycleAdapter adapter, int viewType) {
+
     }
 }

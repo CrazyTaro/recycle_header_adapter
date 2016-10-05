@@ -7,14 +7,15 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
 import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
-import com.taro.headerrecycle.utils.RecyclerViewUtil;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,6 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     protected int mCount = 0;
     //最后一次调整后的count数量
     private int mLastAdjustCount = FIRST_LOAD_ITEM_COUNT;
-
 
     public HeaderRecycleAdapter(@NonNull Context context) {
         this(context, null, null, null);
@@ -84,7 +84,6 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         this.setGroupList(groupList);
     }
 
-
     /**
      * 设置或者更新adapter的option
      *
@@ -93,7 +92,6 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     public void setHeaderAdapterOption(IHeaderAdapterOption option) {
         if (option != null) {
             this.mOptions = option;
-
         }
     }
 
@@ -233,7 +231,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         int layoutId = mOptions.getLayoutId(viewType);
         View rootView = mInflater.inflate(layoutId, parent, false);
         if (mOptions instanceof IAdjustCountOption) {
-            ((IAdjustCountOption) mOptions).onCreateViewEverytime(parent, this);
+            ((IAdjustCountOption) mOptions).onCreateViewEverytime(rootView, parent, this, viewType);
         }
         return new HeaderRecycleViewHolder(this, rootView);
     }
@@ -261,11 +259,11 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     @Override
     public int getItemCount() {
         int adjustCount = mCount;
-        //第一次加载时,lastAdjustCount都必定更新为当前的itemCount
-        if (mLastAdjustCount == FIRST_LOAD_ITEM_COUNT) {
-            mLastAdjustCount = mCount;
-        }
         if (mOptions instanceof IAdjustCountOption) {
+            //第一次加载时,lastAdjustCount都必定更新为当前的itemCount
+            if (mLastAdjustCount == FIRST_LOAD_ITEM_COUNT) {
+                mLastAdjustCount = mCount;
+            }
             IAdjustCountOption justOption = (IAdjustCountOption) mOptions;
             adjustCount = justOption.getAdjustCount();
             //当item数量在有效范围内才会进行调整
@@ -273,28 +271,31 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
                 adjustCount = mCount;
             }
             if (mLastAdjustCount != adjustCount) {
-                int result = RecyclerViewUtil.setRecyclerViewStateItemCount(adjustCount, mParentRecycle);
-                if (result >= 0) {
-                    //记录最后一次调整的item数量
-                    mLastAdjustCount = adjustCount;
+                if (mParentRecycle == null) {
+                    Exception exception = new IllegalArgumentException("parent recycle never set");
+                    exception.printStackTrace();
+                    Log.e(this.getClass().getSimpleName(), "recycle view never set");
+                    return mCount;
                 }
-//                try {
-//                    //获取state
-//                    Field stateField = RecyclerView.class.getDeclaredField("mState");
-//                    stateField.setAccessible(true);
-//                    Object state = stateField.get(mParentRecycle);
-//
-//                    //获取state的mItemCount字段
-//                    Field itemCountField = RecyclerView.State.class.getDeclaredField("mItemCount");
-//                    itemCountField.setAccessible(true);
-//
-//                    //更改itemCount
-//                    itemCountField.setInt(state, adjustCount);
-//                    Log.i("layout", "success");
-//                } catch (NoSuchFieldException | IllegalAccessException e) {
-//                    e.printStackTrace();
-//                    Log.i("layout", "fail");
-//                }
+                //记录最后一次调整的item数量
+                mLastAdjustCount = adjustCount;
+                try {
+                    //获取state
+                    Field stateField = RecyclerView.class.getDeclaredField("mState");
+                    stateField.setAccessible(true);
+                    Object state = stateField.get(mParentRecycle);
+
+                    //获取state的mItemCount字段
+                    Field itemCountField = RecyclerView.State.class.getDeclaredField("mItemCount");
+                    itemCountField.setAccessible(true);
+
+                    //更改itemCount
+                    itemCountField.setInt(state, adjustCount);
+                    Log.i("layout", "success");
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    e.printStackTrace();
+                    Log.i("layout", "fail");
+                }
             }
         }
         return adjustCount;
@@ -546,10 +547,12 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         /**
          * 每一次当itemView被创建的时候此方法会被回调,建议在这个地方根据parentView进行计算并设置需要调整的itemCount
          *
+         * @param itemView
          * @param parentView 此处为RecycleView
          * @param adapter    适配器
+         * @param viewType
          */
-        public void onCreateViewEverytime(ViewGroup parentView, HeaderRecycleAdapter adapter);
+        public void onCreateViewEverytime(@NonNull View itemView, @NonNull ViewGroup parentView, @NonNull HeaderRecycleAdapter adapter, int viewType);
     }
 
 

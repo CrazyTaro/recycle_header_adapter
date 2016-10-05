@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion 23
+        targetSdkVersion 9
         versionCode 1
         versionName "1.0"
     }
@@ -31,9 +31,11 @@ publish {
     userOrg = 'crazytaro'//bintray.com用户名
     groupId = 'com.taro'//jcenter上的路径
     artifactId = 'headerrecycle'//项目名称
-    publishVersion = '1.0.0'//版本号
-    desc = 'a project about extended recycle adapter for adding header and grouping items easily'//描述，不重要
-    website = 'https://github.com/CrazyTaro/RecycleViewAdapter'//网站，不重要；尽量模拟github上的地址，例如我这样的；当然你有地址最好了
+    publishVersion = '2.0.0'//版本号
+    desc = 'a project about recycle adapter for adding header and grouping items easily, and you can adjust the item count to show at anytime'
+//描述，不重要
+    website = 'https://github.com/CrazyTaro/RecycleViewAdapter'
+//网站，不重要；尽量模拟github上的地址
 }
 
 //打jar包方式1,其实要打出jar包,不能更改参数build/intermediates/bundles/release/

@@ -71,6 +71,53 @@ public class RecyclerViewUtil {
         return result;
     }
 
+    /**
+     * 设置view的宽高参数
+     *
+     * @param itemView
+     * @param width    宽
+     * @param height   高
+     */
+    public static final void setViewWidthAndHeight(View itemView, int width, int height) {
+        if (itemView != null) {
+            ViewGroup.LayoutParams params = itemView.getLayoutParams();
+            if (params == null) {
+                params = new ViewGroup.LayoutParams(width, height);
+            }
+            params.width = width;
+            params.height = height;
+            itemView.setLayoutParams(params);
+        }
+    }
+
+    /**
+     * 设置view的margin参数
+     *
+     * @param itemView     设置margin的子view
+     * @param marginLeft
+     * @param marginTop
+     * @param marginRight
+     * @param marginBottom
+     */
+    public static final boolean setViewMarginLayoutParams(View itemView, int marginLeft, int marginTop, int marginRight, int marginBottom) {
+        if (itemView != null) {
+            ViewGroup.LayoutParams params = itemView.getLayoutParams();
+            ViewGroup.MarginLayoutParams marginParams = null;
+            if (params == null) {
+                params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            }
+            if (!(params instanceof ViewGroup.MarginLayoutParams)) {
+                marginParams = new ViewGroup.MarginLayoutParams(params);
+            } else {
+                marginParams = (ViewGroup.MarginLayoutParams) params;
+            }
+            marginParams.setMargins(marginLeft, marginTop, marginRight, marginBottom);
+            itemView.setLayoutParams(marginParams);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     /**
      * 计算并设置子view的layoutParams
@@ -247,5 +294,4 @@ public class RecyclerViewUtil {
         edgeCountPoint.set(edgeSize, count);
         return isRelyOnParentWidth;
     }
-
 }

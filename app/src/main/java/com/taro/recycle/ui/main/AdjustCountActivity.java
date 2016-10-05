@@ -78,19 +78,19 @@ public class AdjustCountActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_adjust_default:
                 mHeaderOption.setAdjustCount(HeaderRecycleAdapter.IAdjustCountOption.NO_USE_ADJUST_COUNT);
-                mNormalAdapter.notifyDataSetChanged();
+                mRvDisplay.setAdapter(mNormalAdapter);
                 break;
             case R.id.action_adjust_beyond:
                 mHeaderOption.setAdjustCount(Integer.MAX_VALUE);
-                mNormalAdapter.notifyDataSetChanged();
+                mRvDisplay.setAdapter(mNormalAdapter);
                 break;
             case R.id.action_adjust_zero:
                 mHeaderOption.setAdjustCount(0);
-                mNormalAdapter.notifyDataSetChanged();
+                mRvDisplay.setAdapter(mNormalAdapter);
                 break;
             case R.id.action_adjust_one_second:
                 mHeaderOption.setAdjustCount(mNormalAdapter.getOriginalItemCount() / 2);
-                mNormalAdapter.notifyDataSetChanged();
+                mRvDisplay.setAdapter(mNormalAdapter);
                 break;
         }
         return super.onOptionsItemSelected(item);

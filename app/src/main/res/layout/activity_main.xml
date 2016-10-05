@@ -28,5 +28,11 @@
         android:layout_height="wrap_content"
         android:text="AdjustCountActivity"/>
 
+    <Button
+        android:id="@+id/btn_main_rely"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RelyParentActivity"/>
+
 
 </LinearLayout>

@@ -24,7 +24,7 @@
         <activity android:name=".ui.main.HeaderActivity"/>
         <activity android:name=".ui.main.StickerActivity"/>
         <activity android:name=".ui.main.AdjustCountActivity"/>
-
+        <activity android:name=".ui.main.RelyParentActivity"/>
 
         <!--<activity android:name=".launch.MainActivity"/>-->
         <activity

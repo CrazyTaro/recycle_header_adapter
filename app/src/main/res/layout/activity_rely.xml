@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@+id/ll_rely_root"
+              xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/et_rely"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="请输入自定义的item个数"
+        android:inputType="number"/>
+
+    <Button
+        android:id="@+id/btn_rely_confirm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="更新item个数"/>
+
+    <EditText
+        android:id="@+id/et_rely_rv_height"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="请输入RecycleView高度"
+        android:inputType="number"/>
+
+    <Button
+        android:id="@+id/btn_rely_update_height"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="更新recycleView高度并自动计算item"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_rely"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"/>
+
+</LinearLayout>

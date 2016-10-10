@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 
 import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
 import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
+import com.taro.headerrecycle.utils.RecyclerViewUtil;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -255,7 +256,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
+
     @Override
     public int getItemCount() {
         int adjustCount = mCount;
@@ -271,31 +272,55 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
                 adjustCount = mCount;
             }
             if (mLastAdjustCount != adjustCount) {
-                if (mParentRecycle == null) {
-                    Exception exception = new IllegalArgumentException("parent recycle never set");
-                    exception.printStackTrace();
-                    Log.e(this.getClass().getSimpleName(), "recycle view never set");
-                    return mCount;
+                int originalCount = RecyclerViewUtil.setRecyclerViewStateItemCount(adjustCount, mParentRecycle);
+                Exception exception = null;
+                if (originalCount >= 0) {
+                    //正常
+                    //记录最后一次调整的item数量
+                    mLastAdjustCount = adjustCount;
+                    return adjustCount;
+                } else {
+                    switch (originalCount) {
+                        case RecyclerViewUtil.STATE_RECYCLERVIEW_EXCEPTION:
+                            //异常已经在方法中打印出
+                            return mCount;
+                        case RecyclerViewUtil.STATE_RECYCLERVIEW_ILLEGAL_PARAMS:
+                            exception = new IllegalArgumentException("parent recycle can not be null or adjust count should be >= 0");
+                            exception.printStackTrace();
+                            return mCount;
+                        case RecyclerViewUtil.STATE_RECYCLERVIEW_STATE_UNINITIALIZED:
+                            exception = new NullPointerException("state has not been initialized, check if adapter was set to recyclerView");
+                            exception.printStackTrace();
+                            return mCount;
+                        default:
+                            return mCount;
+                    }
                 }
-                //记录最后一次调整的item数量
-                mLastAdjustCount = adjustCount;
-                try {
-                    //获取state
-                    Field stateField = RecyclerView.class.getDeclaredField("mState");
-                    stateField.setAccessible(true);
-                    Object state = stateField.get(mParentRecycle);
-
-                    //获取state的mItemCount字段
-                    Field itemCountField = RecyclerView.State.class.getDeclaredField("mItemCount");
-                    itemCountField.setAccessible(true);
-
-                    //更改itemCount
-                    itemCountField.setInt(state, adjustCount);
-                    Log.i("layout", "success");
-                } catch (NoSuchFieldException | IllegalAccessException e) {
-                    e.printStackTrace();
-                    Log.i("layout", "fail");
-                }
+//                if (mParentRecycle == null) {
+//                    Exception exception = new IllegalArgumentException("parent recycle never set");
+//                    exception.printStackTrace();
+//                    Log.e(this.getClass().getSimpleName(), "recycle view never set");
+//                    return mCount;
+//                }
+//                //记录最后一次调整的item数量
+//                mLastAdjustCount = adjustCount;
+//                try {
+//                    //获取state
+//                    Field stateField = RecyclerView.class.getDeclaredField("mState");
+//                    stateField.setAccessible(true);
+//                    Object state = stateField.get(mParentRecycle);
+//
+//                    //获取state的mItemCount字段
+//                    Field itemCountField = RecyclerView.State.class.getDeclaredField("mItemCount");
+//                    itemCountField.setAccessible(true);
+//
+//                    //更改itemCount
+//                    itemCountField.setInt(state, adjustCount);
+//                    Log.i("layout", "success");
+//                } catch (NoSuchFieldException | IllegalAccessException e) {
+//                    e.printStackTrace();
+//                    Log.i("layout", "fail");
+//                }
             }
         }
         return adjustCount;

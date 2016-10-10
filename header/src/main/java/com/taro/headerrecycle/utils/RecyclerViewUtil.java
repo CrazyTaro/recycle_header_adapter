@@ -16,7 +16,7 @@ public class RecyclerViewUtil {
     /**
      * 修改{@link android.support.v7.widget.RecyclerView.State}时,state对象未初始化创建
      */
-    public static final int STATE_RECYCLERVIEW_UNINITIALIZED = -3;
+    public static final int STATE_RECYCLERVIEW_STATE_UNINITIALIZED = -3;
     /**
      * 修改{@link android.support.v7.widget.RecyclerView.State}时,传入的参数不合法
      */
@@ -51,9 +51,9 @@ public class RecyclerViewUtil {
                 int originalItemCount = (int) itemCountField.get(state);
 
 
-                if (itemCount <= 0 || itemCount >= originalItemCount) {
+                if (itemCount < 0 || itemCount >= originalItemCount) {
                     //参数不合法
-                    result = -1;
+                    result = STATE_RECYCLERVIEW_ILLEGAL_PARAMS;
                 } else {
                     //更改itemCount
                     itemCountField.setInt(state, itemCount);
@@ -61,12 +61,12 @@ public class RecyclerViewUtil {
                 }
             } else {
                 //state未初始化
-                result = -3;
+                result = STATE_RECYCLERVIEW_STATE_UNINITIALIZED;
             }
         } catch (Exception e) {
             e.printStackTrace();
             //异常
-            result = -2;
+            result = STATE_RECYCLERVIEW_EXCEPTION;
         }
         return result;
     }

@@ -31,7 +31,7 @@ publish {
     userOrg = 'crazytaro'//bintray.com用户名
     groupId = 'com.taro'//jcenter上的路径
     artifactId = 'headerrecycle'//项目名称
-    publishVersion = '2.0.0'//版本号
+    publishVersion = '2.1.0'//版本号
     desc = 'a project about recycle adapter for adding header and grouping items easily, and you can adjust the item count to show at anytime'
 //描述，不重要
     website = 'https://github.com/CrazyTaro/RecycleViewAdapter'

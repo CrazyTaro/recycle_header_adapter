@@ -137,8 +137,8 @@ public class RecyclerViewUtil {
         if (childView == null || parentWidth <= 0 || parentHeight <= 0) {
             return;
         }
+        int baseSize = isRelyOnParentWidth ? parentWidth : parentHeight;
         //计算子控件的实际宽高大小
-        int childWidth = computeSquareViewSize(parentWidth, parentHeight, childMarginLeft, childMarginTop, childMarginRight, childMarginBottom, isRelyOnParentWidth);
         ViewGroup.LayoutParams params = childView.getLayoutParams();
         ViewGroup.MarginLayoutParams margin = null;
         if (params == null) {
@@ -147,8 +147,8 @@ public class RecyclerViewUtil {
         //创建margin
         margin = new ViewGroup.MarginLayoutParams(params);
         //设置子控件的大小
-        margin.width = childWidth;
-        margin.height = childWidth;
+        margin.width = computeSquareViewSize(baseSize, childMarginLeft, childMarginTop, childMarginRight, childMarginBottom, true);
+        margin.height = computeSquareViewSize(baseSize, childMarginLeft, childMarginTop, childMarginRight, childMarginBottom, false);
         //设置margin大小
         margin.setMargins(childMarginLeft, childMarginTop, childMarginRight, childMarginBottom);
         //根据依赖边对多余的空间部分调整添加到margin中
@@ -228,26 +228,24 @@ public class RecyclerViewUtil {
      * 计算子控件的实际宽高;子控件显示时依赖于父控件的某个宽或者高,包括margin部分也计算在内;<br>
      * 所以子控件的实际宽高应该是依赖的(父控件的)宽高减去子控件需要的margin大小
      *
-     * @param parentWidth         父控件宽
-     * @param parentHeight        父控件高
-     * @param childMarginLeft     子控件需要的margin-left
-     * @param childMarginTop      子控件需要的margin-top
-     * @param childMarginRight    子控件需要的margin-right
-     * @param childMarginBottom   子控件需要的margin-bottom
-     * @param isRelyOnParentWidth 依赖于宽或是高;true为以父控件宽为基准,false为以父控件高为基准.
+     * @param baseSize          计算的依赖边长
+     * @param childMarginLeft   子控件需要的margin-left
+     * @param childMarginTop    子控件需要的margin-top
+     * @param childMarginRight  子控件需要的margin-right
+     * @param childMarginBottom 子控件需要的margin-bottom
+     * @param isComputeWidth    是否计算childView的宽度,true返回的是childView的实际宽度,false返回childView的实际高度
      * @return
      */
-    public static final int computeSquareViewSize(int parentWidth, int parentHeight, int childMarginLeft, int childMarginTop,
-                                                  int childMarginRight, int childMarginBottom, boolean isRelyOnParentWidth) {
-        if (parentWidth > 0 && parentHeight > 0) {
-            int baseSize = 0;
+    public static final int computeSquareViewSize(int baseSize, int childMarginLeft, int childMarginTop,
+                                                  int childMarginRight, int childMarginBottom, boolean isComputeWidth) {
+        if (baseSize > 0) {
             //基于宽
-            if (isRelyOnParentWidth) {
+            if (!isComputeWidth) {
                 //计算是将整个子控件的margin算在内以依赖边的大小(正方形)填充,所以实际的子控件宽高应该是除去margin部分
-                baseSize = parentWidth - childMarginTop - childMarginBottom;
+                baseSize = baseSize - childMarginTop - childMarginBottom;
             } else {
                 //基于高
-                baseSize = parentHeight - childMarginLeft - childMarginRight;
+                baseSize = baseSize - childMarginLeft - childMarginRight;
             }
             return baseSize;
         } else {
@@ -282,8 +280,10 @@ public class RecyclerViewUtil {
      * <li>childCount,基于父控件的宽或者高计算另一边的相对依赖边的可分割数量,也就是最多可以显示的child的数量,详见方法{@link #computeSquareViewCountOnParentView(int, int, boolean)}</li>
      *
      * @param parentView       父控件
-     * @param widthHeightPoint 用于存放父控件提供给子view显示的实际宽高大小;
-     * @param edgeCountPoint   用于存放父控件布局子view后多余的空间及需要布局的子view的数量;
+     * @param widthHeightPoint 用于存放父控件提供给子view显示的实际宽高大小;<br>
+     *                         point.x=width,point.y=height;
+     * @param edgeCountPoint   用于存放父控件布局子view后多余的空间及需要布局的子view的数量;<br>
+     *                         point.x=childCount,point.y=edgeSize;
      * @return 返回此次计算基于的父控件的宽或者高;true为基于宽计算;false为基于高计算
      */
     public static final boolean computeSquareViewToFixParent(@NonNull View parentView, @NonNull Point widthHeightPoint, @NonNull Point edgeCountPoint) {

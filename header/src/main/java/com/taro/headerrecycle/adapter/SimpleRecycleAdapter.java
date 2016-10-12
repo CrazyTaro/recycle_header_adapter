@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -123,6 +125,11 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
         @Override
         public void setAdjustCount(int adjustCount) {
             mAdjustCount = adjustCount;
+        }
+
+        @Override
+        public void onCreateViewEverytime(@NonNull View itemView, @NonNull ViewGroup parentView, @NonNull HeaderRecycleAdapter adapter, int viewType) {
+
         }
 
         /**

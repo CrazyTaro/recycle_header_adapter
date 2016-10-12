@@ -105,10 +105,6 @@ public class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterO
         if (mIsSetBgColor) {
             holder.getRootView().setBackgroundColor(Color.parseColor("#99cc99"));
         }
-
-        if (holder.getAdatper() instanceof SimpleRecycleAdapter) {
-            mAdjustCount = 5;
-        }
     }
 
     @Override

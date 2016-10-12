@@ -11,6 +11,7 @@ import android.view.MenuItem;
 
 import com.taro.headerrecycle.adapter.ExtraViewWrapAdapter;
 import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
+import com.taro.headerrecycle.adapter.SimpleRecycleAdapter;
 import com.taro.recycle.R;
 import com.taro.recycle.ui.other.HeaderAdapterOption;
 
@@ -25,8 +26,6 @@ import java.util.Map;
 public class AdjustCountActivity extends AppCompatActivity {
     RecyclerView mRvDisplay = null;
 
-    List<List<String>> mGroupList = null;
-    Map<Integer, String> mHeaderMap = new ArrayMap<Integer, String>();
     HeaderRecycleAdapter mNormalAdapter = null;
     HeaderAdapterOption mHeaderOption = null;
 
@@ -36,33 +35,16 @@ public class AdjustCountActivity extends AppCompatActivity {
         setContentView(R.layout.activity_header);
         mRvDisplay = (RecyclerView) findViewById(R.id.rv_test);
 
-        mGroupList = new LinkedList<List<String>>();
-        mHeaderMap = new ArrayMap<Integer, String>();
-        int groupId = 0;
-        int count = 0;
-        count = groupId + 15;
-        for (; groupId < count; groupId++) {
-            int childCount = 8;
-            List<String> childList = null;
-            if (groupId > count / 2) {
-                childList = new ArrayList<String>(childCount);
-                for (int j = 0; j < childCount; j++) {
-                    childList.add("child - " + j);
-                }
-            }
-            mGroupList.add(childList);
-            mHeaderMap.put(groupId, "title - " + groupId);
-        }
-
-
-        List<String> itemList = new ArrayList<String>();
-        for (int i = 0; i < 5; i++) {
-            itemList.add("single child - " + i);
+        int count = 20;
+        List<String> childList = new ArrayList<String>(count);
+        for (int j = 0; j < count; j++) {
+            childList.add("child - " + j);
         }
 
         //item单类型带头部adapter
         mHeaderOption = new HeaderAdapterOption(false, false);
-        mNormalAdapter = new HeaderRecycleAdapter<String, String>(this, mHeaderOption, mGroupList, mHeaderMap);
+
+        mNormalAdapter = new SimpleRecycleAdapter<String>(this, mHeaderOption, childList);
         mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
         mRvDisplay.setAdapter(new ExtraViewWrapAdapter(mNormalAdapter));
     }

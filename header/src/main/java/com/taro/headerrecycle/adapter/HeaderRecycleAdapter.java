@@ -1,13 +1,11 @@
 package com.taro.headerrecycle.adapter;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Point;
-import android.os.Build;
+import android.os.DeadObjectException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +14,11 @@ import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
 import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
 import com.taro.headerrecycle.utils.RecyclerViewUtil;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static android.R.attr.id;
 
 /**
  * Created by taro on 16/4/19.
@@ -28,17 +27,22 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     private static final int FIRST_LOAD_ITEM_COUNT = Integer.MAX_VALUE;
 
     //分组数据列表
-    protected List<List<T>> mGroupList;
-    protected List<Integer> mEachGroupCountList;
+    private List<List<T>> mGroupList;
+    private List<Integer> mEachGroupCountList;
     //头部数据
-    protected Map<Integer, H> mHeaderMap;
-    protected LayoutInflater mInflater;
-    protected IHeaderAdapterOption<T, H> mOptions = null;
+    private Map<Integer, H> mHeaderMap;
+    private LayoutInflater mInflater;
+    private IHeaderAdapterOption<T, H> mOptions = null;
+    private IAdjustCountOption mAdjustOption = null;
+    //通知参数更新的回调接口
     private OnHeaderParamsUpdateListener mParamsUpdateListener = null;
+    //与此Adapter绑定的recycleView
     private RecyclerView mParentRecycle = null;
 
-    protected boolean mIsShowHeader = true;
-    protected int mCount = 0;
+    private Point mRecyclePoint = new Point();
+    private boolean mIsShowHeader = true;
+    //实际数据源的itemCount数量
+    private int mCount = 0;
     //最后一次调整后的count数量
     private int mLastAdjustCount = FIRST_LOAD_ITEM_COUNT;
 
@@ -80,8 +84,8 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      */
     private void init(@NonNull LayoutInflater inflater, @Nullable IHeaderAdapterOption<T, H> option, @Nullable List<List<T>> groupList, @Nullable Map<Integer, H> headerMap) {
         mInflater = inflater;
-        mOptions = option;
         mHeaderMap = headerMap;
+        this.setHeaderAdapterOption(option);
         this.setGroupList(groupList);
     }
 
@@ -110,6 +114,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      *
      * @return
      */
+    @Nullable
     public List<Integer> getEachGroupCountList() {
         return mEachGroupCountList;
     }
@@ -128,6 +133,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      *
      * @return
      */
+    @Nullable
     public List<List<T>> getGroupList() {
         return mGroupList;
     }
@@ -137,6 +143,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      *
      * @return
      */
+    @Nullable
     public Map<Integer, H> getHeaderMap() {
         return mHeaderMap;
     }
@@ -147,6 +154,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      * @param groupId
      * @return
      */
+    @Nullable
     public H getHeader(int groupId) {
         return mHeaderMap.get(groupId);
     }
@@ -157,9 +165,10 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      * @param position item位置(非header,若该位置为header,返回null)
      * @return
      */
+    @Nullable
     public T getItem(int position) {
-        Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
-        return getItem(p);
+        getGroupIdAndChildIdFromPosition(mEachGroupCountList, mRecyclePoint, position, mIsShowHeader);
+        return getItem(mRecyclePoint);
     }
 
     /**
@@ -223,8 +232,8 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
 
     @Override
     public int getItemViewType(int position) {
-        Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
-        return mOptions.getItemViewType(position, p.x, p.y, isHeaderItem(p), mIsShowHeader);
+        getGroupIdAndChildIdFromPosition(mEachGroupCountList, mRecyclePoint, position, mIsShowHeader);
+        return mOptions.getItemViewType(position, mRecyclePoint.x, mRecyclePoint.y, isHeaderItem(mRecyclePoint), mIsShowHeader);
     }
 
     @Override
@@ -239,20 +248,38 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
 
     @Override
     public void onBindViewHolder(HeaderRecycleViewHolder holder, int position) {
-        Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
+        getGroupIdAndChildIdFromPosition(mEachGroupCountList, mRecyclePoint, position, mIsShowHeader);
         //设置当前项的组ID,与组内数据ID
-        holder.setGroupIdAndChildId(p.x, p.y);
+        holder.setGroupIdAndChildId(mRecyclePoint.x, mRecyclePoint.y);
         T itemData = null;
         H headerData = null;
-        if (isHeaderItem(p)) {
+        if (isHeaderItem(mRecyclePoint)) {
             //设置头部数据显示
-            headerData = mHeaderMap.get(p.x);
-            mOptions.setHeaderHolder(p.x, headerData, holder);
+            headerData = mHeaderMap.get(mRecyclePoint.x);
+            mOptions.setHeaderHolder(mRecyclePoint.x, headerData, holder);
         } else {
             //设置普通Item数据显示
-            List<T> itemList = mGroupList.get(p.x);
-            itemData = itemList != null ? itemList.get(p.y) : null;
-            mOptions.setViewHolder(p.x, p.y, position, itemData, holder);
+            List<T> itemList = mGroupList.get(mRecyclePoint.x);
+            itemData = itemList != null ? itemList.get(mRecyclePoint.y) : null;
+            mOptions.setViewHolder(mRecyclePoint.x, mRecyclePoint.y, position, itemData, holder);
+        }
+
+        //当完成第一次绑定后调整view的数据恰好为1时,检测当前option是否是可调整对象
+        if (mLastAdjustCount == 1 && mOptions instanceof IAdjustCountOption) {
+            mAdjustOption = (IAdjustCountOption) mOptions;
+            //获取option的新调整item结果
+            int newCount = mAdjustOption.getAdjustCount();
+            //当结果大于1时,通知再次更新数据;这里因为当item值大于1时,此次更新已经完成,recycleView不会再进行任何更新或者是创建数据,
+            //所以当前的设置其实尽管item数量大于1但不会有任何的效果,除非重新刷新一次.
+            if (newCount > 1 || newCount <= 0) {
+                //通过recycleView在刷新完界面后再重新刷新一次
+                mParentRecycle.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mParentRecycle.requestLayout();
+                    }
+                });
+            }
         }
     }
 
@@ -270,58 +297,42 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
             //当item数量在有效范围内才会进行调整
             if (adjustCount < 0 || adjustCount > mCount) {
                 adjustCount = mCount;
-            }
-            if (mLastAdjustCount != adjustCount) {
-                int originalCount = RecyclerViewUtil.setRecyclerViewStateItemCount(adjustCount, mParentRecycle);
-                Exception exception = null;
-                if (originalCount >= 0) {
-                    //正常
-                    //记录最后一次调整的item数量
-                    mLastAdjustCount = adjustCount;
-                    return adjustCount;
-                } else {
-                    switch (originalCount) {
-                        case RecyclerViewUtil.STATE_RECYCLERVIEW_EXCEPTION:
-                            //异常已经在方法中打印出
-                            return mCount;
-                        case RecyclerViewUtil.STATE_RECYCLERVIEW_ILLEGAL_PARAMS:
-                            exception = new IllegalArgumentException("parent recycle can not be null or adjust count should be >= 0");
-                            exception.printStackTrace();
-                            return mCount;
-                        case RecyclerViewUtil.STATE_RECYCLERVIEW_STATE_UNINITIALIZED:
-                            exception = new NullPointerException("state has not been initialized, check if adapter was set to recyclerView");
-                            exception.printStackTrace();
-                            return mCount;
-                        default:
-                            return mCount;
+                mLastAdjustCount = adjustCount;
+            } else {
+                if (mLastAdjustCount != adjustCount) {
+                    //当当前调整值与上一次调整值不同时再进行计算新的调整值
+                    int originalCount = RecyclerViewUtil.setRecyclerViewStateItemCount(adjustCount, this.getOriginalItemCount(), mParentRecycle);
+                    Exception exception = null;
+                    if (originalCount >= 0) {
+                        //正常
+                        //记录最后一次调整的item数量
+                        mLastAdjustCount = adjustCount;
+                    } else {
+                        //返回负数,出错了,打出错误
+                        switch (originalCount) {
+                            case RecyclerViewUtil.STATE_RECYCLERVIEW_EXCEPTION:
+                                //异常已经在方法中打印出
+                                break;
+                            case RecyclerViewUtil.STATE_RECYCLERVIEW_ILLEGAL_PARAMS:
+                                exception = new IllegalArgumentException("parent recycle can not be null or adjust count should be >= 0");
+                                exception.printStackTrace();
+                                break;
+                            case RecyclerViewUtil.STATE_RECYCLERVIEW_STATE_UNINITIALIZED:
+                                exception = new NullPointerException("state has not been initialized, check if adapter was set to recyclerView");
+                                exception.printStackTrace();
+                                break;
+                            default:
+                                break;
+                        }
+                        //将调整值重置为初始值
+                        mLastAdjustCount = mCount;
                     }
+                } else {
+                    //当前调整数量与上次调整一样,直接返回缓存的值
                 }
-//                if (mParentRecycle == null) {
-//                    Exception exception = new IllegalArgumentException("parent recycle never set");
-//                    exception.printStackTrace();
-//                    Log.e(this.getClass().getSimpleName(), "recycle view never set");
-//                    return mCount;
-//                }
-//                //记录最后一次调整的item数量
-//                mLastAdjustCount = adjustCount;
-//                try {
-//                    //获取state
-//                    Field stateField = RecyclerView.class.getDeclaredField("mState");
-//                    stateField.setAccessible(true);
-//                    Object state = stateField.get(mParentRecycle);
-//
-//                    //获取state的mItemCount字段
-//                    Field itemCountField = RecyclerView.State.class.getDeclaredField("mItemCount");
-//                    itemCountField.setAccessible(true);
-//
-//                    //更改itemCount
-//                    itemCountField.setInt(state, adjustCount);
-//                    Log.i("layout", "success");
-//                } catch (NoSuchFieldException | IllegalAccessException e) {
-//                    e.printStackTrace();
-//                    Log.i("layout", "fail");
-//                }
             }
+        } else {
+            mLastAdjustCount = mCount;
         }
         return adjustCount;
     }
@@ -332,11 +343,28 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         mParentRecycle = recyclerView;
     }
 
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        mParentRecycle = null;
+    }
+
+    /**
+     * 获取当前此adapter绑定的recycleView
+     *
+     * @return
+     */
+    @Nullable
+    public RecyclerView getParentRecycleView() {
+        return mParentRecycle;
+    }
+
     /**
      * 获取此类实现的用于固定头部展示的 stickHeaderDecoration 接口
      *
      * @return
      */
+    @NonNull
     public StickHeaderItemDecoration.IStickerHeaderDecoration getImplementStickHeaderDecoration() {
         return this;
     }
@@ -346,6 +374,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      *
      * @return
      */
+    @NonNull
     public HeaderSpanSizeLookup.ISpanSizeHandler getImplementSpanSizeLookupHandler() {
         return this;
     }
@@ -385,6 +414,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      * @param p
      * @return
      */
+    @Nullable
     public T getItem(Point p) {
         //若该位置为header,返回null
         if (isHeaderItem(p)) {
@@ -409,9 +439,9 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      * @param position
      * @return
      */
-    public Point getGroupIdAndChildIdFromPosition(List<Integer> eachGroupCountList, int position, boolean isShowGroup) {
+    public void getGroupIdAndChildIdFromPosition(@Nullable List<Integer> eachGroupCountList, @NonNull Point outPoint, int position, boolean isShowGroup) {
         if (position < 0 || position >= mCount) {
-            return new Point(-1, 0);
+            outPoint.set(-1, 0);
         }
         int groupId = 0;
         int childId = 0;
@@ -433,7 +463,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
                 groupId++;
             }
         }
-        return new Point(groupId, childId);
+        outPoint.set(groupId, childId);
     }
 
 
@@ -464,6 +494,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      * @param groupList 分组数据列表
      * @return 返回分组数据量列表, 每一项都对应分组列表中的每一组的数据量
      */
+    @Nullable
     public List<Integer> getEachGroupCountList(List<List<T>> groupList) {
         if (groupList == null) {
             return null;
@@ -481,8 +512,8 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      *********/
     @Override
     public boolean isHeaderPosition(int position) {
-        Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
-        return isHeaderItem(p);
+        getGroupIdAndChildIdFromPosition(mEachGroupCountList, mRecyclePoint, position, mIsShowHeader);
+        return isHeaderItem(mRecyclePoint);
     }
 
     @Override
@@ -492,8 +523,8 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
 
     @Override
     public int getHeaderViewTag(int position, RecyclerView parent) {
-        Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
-        return mOptions.getLayoutId(mOptions.getHeaderViewType(p.x, position));
+        getGroupIdAndChildIdFromPosition(mEachGroupCountList, mRecyclePoint, position, mIsShowHeader);
+        return mOptions.getLayoutId(mOptions.getHeaderViewType(mRecyclePoint.x, position));
     }
 
     @Override
@@ -504,25 +535,25 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
 
     @Override
     public void setHeaderView(int position, int headerViewTag, RecyclerView parent, View headerView) {
-        Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
-        H headerObj = mHeaderMap.get(p.x);
+        getGroupIdAndChildIdFromPosition(mEachGroupCountList, mRecyclePoint, position, mIsShowHeader);
+        H headerObj = mHeaderMap.get(mRecyclePoint.x);
         HeaderRecycleViewHolder holder = (HeaderRecycleViewHolder) headerView.getTag();
         if (holder == null) {
             holder = new HeaderRecycleViewHolder(this, headerView);
             headerView.setTag(holder);
         }
-        mOptions.setHeaderHolder(p.x, headerObj, holder);
+        mOptions.setHeaderHolder(mRecyclePoint.x, headerObj, holder);
     }
 
     @Override
     public boolean isBeenDecorated(int lastDecoratedPosition, int nowDecoratingPosition) {
-        Point lastPoint = getGroupIdAndChildIdFromPosition(mEachGroupCountList, lastDecoratedPosition, mIsShowHeader);
-        Point newPoint = getGroupIdAndChildIdFromPosition(mEachGroupCountList, nowDecoratingPosition, mIsShowHeader);
-        if (lastPoint != null && newPoint != null) {
-            return lastPoint.x == newPoint.x;
-        } else {
-            return false;
-        }
+        int lastGroupId = Integer.MIN_VALUE;
+        int newGroupId = Integer.MIN_VALUE;
+        getGroupIdAndChildIdFromPosition(mEachGroupCountList, mRecyclePoint, lastDecoratedPosition, mIsShowHeader);
+        lastGroupId = mRecyclePoint.x;
+        getGroupIdAndChildIdFromPosition(mEachGroupCountList, mRecyclePoint, nowDecoratingPosition, mIsShowHeader);
+        newGroupId = mRecyclePoint.y;
+        return lastGroupId == Integer.MIN_VALUE || newGroupId == Integer.MIN_VALUE || lastGroupId == newGroupId;
     }
 
     /************
@@ -530,8 +561,8 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
      *************/
     @Override
     public boolean isSpecialItem(int position) {
-        Point p = getGroupIdAndChildIdFromPosition(mEachGroupCountList, position, mIsShowHeader);
-        return isHeaderItem(p);
+        getGroupIdAndChildIdFromPosition(mEachGroupCountList, mRecyclePoint, position, mIsShowHeader);
+        return isHeaderItem(mRecyclePoint);
     }
 
     @Override
@@ -542,42 +573,6 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     @Override
     public int getNormalItemSpanSize(int spanCount, int position) {
         return 1;
-    }
-
-    /**
-     * 调整界面显示的item数接口
-     */
-    public interface IAdjustCountOption {
-        /**
-         * 无效的item长度,使用此值时不会改变原来的item长度
-         */
-        public static final int NO_USE_ADJUST_COUNT = -1;
-
-        /**
-         * 设置调整后需要显示的itemCount.
-         *
-         * @param adjustCount count必须小于原始添加数据的量(否则多出的数据根本不可能找到填充的对象), 同时也必须大于1才有效.返回负数无效, 将使用原数据量.
-         *                    默认值为负数{@link #NO_USE_ADJUST_COUNT}
-         */
-        public void setAdjustCount(int adjustCount);
-
-        /**
-         * 返回调整后需要显示的itemCount.
-         *
-         * @return 返回的count必须小于原始添加数据的量(否则多出的数据根本不可能找到填充的对象), 同时也必须大于1才有效.返回负数无效, 将使用原数据量.
-         * 默认值为负数{@link #NO_USE_ADJUST_COUNT}
-         */
-        public int getAdjustCount();
-
-        /**
-         * 每一次当itemView被创建的时候此方法会被回调,建议在这个地方根据parentView进行计算并设置需要调整的itemCount
-         *
-         * @param itemView
-         * @param parentView 此处为RecycleView
-         * @param adapter    适配器
-         * @param viewType
-         */
-        public void onCreateViewEverytime(@NonNull View itemView, @NonNull ViewGroup parentView, @NonNull HeaderRecycleAdapter adapter, int viewType);
     }
 
 
@@ -627,7 +622,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
          * @param header  当前Header数据,来自于Map
          * @param holder
          */
-        public void setHeaderHolder(int groupId, H header, HeaderRecycleViewHolder holder);
+        public void setHeaderHolder(int groupId, H header, @NonNull HeaderRecycleViewHolder holder);
 
         /**
          * 设置子项ViewHolder
@@ -638,7 +633,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
          * @param itemData
          * @param holder
          */
-        public void setViewHolder(int groupId, int childId, int position, T itemData, HeaderRecycleViewHolder holder);
+        public void setViewHolder(int groupId, int childId, int position, T itemData, @NonNull HeaderRecycleViewHolder holder);
     }
 
     /**
@@ -657,14 +652,14 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
          *
          * @param groupList
          */
-        public void onUpdateGroupList(List<List<T>> groupList);
+        public void onUpdateGroupList(@Nullable List<List<T>> groupList);
 
         /**
          * 更新分组数据量(指将每个分组中的数据量取出按顺序存放到一个list中,直接通过此list可以获取每组的数据量并进行,不需要遍历分组数据去list.size()获取每个分组的数据量)
          *
          * @param eachGroupCountList
          */
-        public void onUpdateEachGroupCountList(List<Integer> eachGroupCountList);
+        public void onUpdateEachGroupCountList(@Nullable List<Integer> eachGroupCountList);
 
         /**
          * 更新item的总数,当显示header和不显示header时,此值会有变化

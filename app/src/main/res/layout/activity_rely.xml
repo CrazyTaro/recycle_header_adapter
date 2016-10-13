@@ -31,6 +31,18 @@
         android:layout_height="wrap_content"
         android:text="更新recycleView高度并自动计算item"/>
 
+    <Button
+        android:id="@+id/btn_rely_auto_update_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="更新item个数为5"/>
+
+    <Button
+        android:id="@+id/btn_rely_auto_update_40"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="更新recycleView高度为40"/>
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_rely"
         android:layout_width="match_parent"

@@ -307,25 +307,4 @@ public class RecyclerViewUtil {
         edgeCountPoint.set(edgeSize, count);
         return isRelyOnParentWidth;
     }
-
-    /**
-     * 获取当前拥有此hold的RecycleView
-     *
-     * @param holder
-     * @return 可能返回null
-     */
-    @Nullable
-    public static final RecyclerView getRecycleViewFromHolder(@Nullable RecyclerView.ViewHolder holder) {
-        if (holder != null) {
-            try {
-                Field field = holder.getClass().getDeclaredField("mOwnerRecyclerView");
-                return (RecyclerView) field.get(holder);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
 }

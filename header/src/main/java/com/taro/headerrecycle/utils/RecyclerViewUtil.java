@@ -7,6 +7,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
+
 import java.lang.reflect.Field;
 
 /**
@@ -27,13 +29,16 @@ public class RecyclerViewUtil {
     public static final int STATE_RECYCLERVIEW_EXCEPTION = -2;
 
     /**
-     * 修改RecycelView中的State对象中的itemCount,当动态改变显示的itemCount时,必须进行修改.
+     * 修改RecycelView中的State对象中的itemCount,当动态改变显示的itemCount时,必须进行修改.<br>
+     * 请注意,{@code originalDataCount}参数是很重要的,应该确保该值是有效的,简单来说,当数据源只有n个时,但是此参数值提供了m(m>n),
+     * 则多将多出很多item,而这一部分在创建view时是不存在问题,主要的问题是在于绑定数据时可能会不存在数据而导致某些异常发生
      *
-     * @param itemCount 需要更新的itemCount,该值必须 &gt;=0,小于RecycleView的itemList中的item数量.
-     * @param rv
+     * @param itemCount         需要更新的itemCount,该值必须 &gt;=0,小于RecycleView的itemList中的item数量.
+     * @param originalDataCount 当前adapter的原始itemCount值,即数据源数量,可通过{@link HeaderRecycleAdapter#getOriginalItemCount()}获取
+     * @param rv                父控件RecycleView
      * @return 返回值为修改前的itemCount, 当为负数时说明修改失败, 根据常量确定失败原因
      */
-    public static final int setRecyclerViewStateItemCount(int itemCount, @Nullable RecyclerView rv) {
+    public static final int setRecyclerViewStateItemCount(int itemCount, int originalDataCount, @Nullable RecyclerView rv) {
         int result = -1;
         if (rv == null) {
             return STATE_RECYCLERVIEW_ILLEGAL_PARAMS;
@@ -51,7 +56,7 @@ public class RecyclerViewUtil {
                 int originalItemCount = (int) itemCountField.get(state);
 
 
-                if (itemCount < 0 || itemCount >= originalItemCount) {
+                if (itemCount < 0 || itemCount > originalDataCount) {
                     //参数不合法
                     result = STATE_RECYCLERVIEW_ILLEGAL_PARAMS;
                 } else {
@@ -137,15 +142,22 @@ public class RecyclerViewUtil {
         if (childView == null || parentWidth <= 0 || parentHeight <= 0) {
             return;
         }
-        int baseSize = isRelyOnParentWidth ? parentWidth : parentHeight;
+
         //计算子控件的实际宽高大小
         ViewGroup.LayoutParams params = childView.getLayoutParams();
         ViewGroup.MarginLayoutParams margin = null;
+        //参数不存在,创建
         if (params == null) {
             params = new ViewGroup.LayoutParams(0, 0);
         }
-        //创建margin
-        margin = new ViewGroup.MarginLayoutParams(params);
+        //参数存在,判断是否为margin类型
+        if (params instanceof ViewGroup.MarginLayoutParams) {
+            margin = (ViewGroup.MarginLayoutParams) params;
+        } else {
+            //创建margin
+            margin = new ViewGroup.MarginLayoutParams(params);
+        }
+        int baseSize = isRelyOnParentWidth ? parentWidth : parentHeight;
         //设置子控件的大小
         margin.width = computeSquareViewSize(baseSize, childMarginLeft, childMarginTop, childMarginRight, childMarginBottom, true);
         margin.height = computeSquareViewSize(baseSize, childMarginLeft, childMarginTop, childMarginRight, childMarginBottom, false);
@@ -273,6 +285,7 @@ public class RecyclerViewUtil {
         return outPoint;
     }
 
+
     /**
      * 计算子控件完全填充到父控件中自动适应大小.以最小边为基准,作为子控件的宽高大小(包含margin),自动计算需要填充的子控件大小并获取其相关的数据信息.<br>
      * 对于参数{@code edgeCountPoint}需要特别说明一下.该point对象中存放了两个整数数据,分别为edgeSize和childCount;其意义分如下<br>
@@ -293,5 +306,26 @@ public class RecyclerViewUtil {
         int edgeSize = computeSquareViewEdgeSize(widthHeightPoint.x, widthHeightPoint.y, count, isRelyOnParentWidth);
         edgeCountPoint.set(edgeSize, count);
         return isRelyOnParentWidth;
+    }
+
+    /**
+     * 获取当前拥有此hold的RecycleView
+     *
+     * @param holder
+     * @return 可能返回null
+     */
+    @Nullable
+    public static final RecyclerView getRecycleViewFromHolder(@Nullable RecyclerView.ViewHolder holder) {
+        if (holder != null) {
+            try {
+                Field field = holder.getClass().getDeclaredField("mOwnerRecyclerView");
+                return (RecyclerView) field.get(holder);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 }

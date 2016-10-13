@@ -2,22 +2,21 @@ package com.taro.recycle.ui.other;
 
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.taro.headerrecycle.adapter.SimpleRecycleAdapter;
+import com.taro.headerrecycle.adapter.IAdjustCountOption;
 import com.taro.recycle.R;
 import com.taro.recycle.ui.main.BubbleBoxLayout;
 import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
 import com.taro.headerrecycle.adapter.HeaderRecycleViewHolder;
 
-import static com.taro.headerrecycle.adapter.HeaderRecycleAdapter.IAdjustCountOption.NO_USE_ADJUST_COUNT;
-
 /**
  * Created by taro on 16/6/22.
  */
-public class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption<String, String>, HeaderRecycleAdapter.IAdjustCountOption {
+public class HeaderAdapterOption implements HeaderRecycleAdapter.IHeaderAdapterOption<String, String>, IAdjustCountOption {
     private boolean mIsMultiType = false;
     private boolean mIsSetBgColor = false;
     public int mAdjustCount = NO_USE_ADJUST_COUNT;

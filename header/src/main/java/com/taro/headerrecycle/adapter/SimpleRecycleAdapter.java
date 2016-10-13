@@ -3,6 +3,7 @@ package com.taro.headerrecycle.adapter;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -102,18 +103,21 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
             return getViewType(position);
         }
 
+        @Deprecated
         @Override
         public int getHeaderViewType(int groupId, int position) {
             return NO_HEADER_TYPE;
         }
 
+        @Deprecated
         @Override
-        public void setHeaderHolder(int groupId, Object header, HeaderRecycleViewHolder holder) {
+        public void setHeaderHolder(int groupId, Object header, @NonNull HeaderRecycleViewHolder holder) {
             //简单Adapter不处理Header,所以此方法不需要使用到,空实现
         }
 
+        @Deprecated
         @Override
-        public void setViewHolder(int groupId, int childId, int position, T itemData, HeaderRecycleViewHolder holder) {
+        public void setViewHolder(int groupId, int childId, int position, T itemData, @NonNull HeaderRecycleViewHolder holder) {
             setViewHolder(itemData, position, holder);
         }
 
@@ -124,12 +128,22 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
 
         @Override
         public void setAdjustCount(int adjustCount) {
-            mAdjustCount = adjustCount;
+            setInnerAdjustCount(adjustCount);
         }
 
         @Override
         public void onCreateViewEverytime(@NonNull View itemView, @NonNull ViewGroup parentView, @NonNull HeaderRecycleAdapter adapter, int viewType) {
 
+        }
+        
+        /**
+         * 内部的实际设置调整item的方法;存在这个方法的原因是方便{@link #setAdjustCount(int)}方法可以被子类适当地进行一些重写操作而不会直接影响到设置adjustCount;<br>
+         * 子类在进行了计算后对实际的调整值的设置可以使用此方法进行设置,或者使用{@code super.setAdjustCount()}
+         *
+         * @param adjustCount
+         */
+        void setInnerAdjustCount(int adjustCount) {
+            mAdjustCount = adjustCount;
         }
 
         /**
@@ -147,6 +161,6 @@ public class SimpleRecycleAdapter<T> extends HeaderRecycleAdapter {
          * @param position 当前项位置
          * @param holder
          */
-        public abstract void setViewHolder(T itemData, int position, HeaderRecycleViewHolder holder);
+        public abstract void setViewHolder(T itemData, int position, @NonNull HeaderRecycleViewHolder holder);
     }
 }

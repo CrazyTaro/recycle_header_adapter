@@ -28,9 +28,13 @@ compile 'com.taro:headerrecycle:2.5.0'
 ## 更新说明
 2016-10-15
 1.新增recycleView相关的工具类
+
 2.新增动态调整itemCount数量的接口(不需要改动数据源)
+
 3.新增自动计算均分recycleView显示child的`AutoFillAdjustChildAdapterOption`(详情请查看使用说明)
+
 4.修复原有所有adapter不支持跟随activiy变更字体的问题
+
 5.优化调整了部分代码
 
 ---

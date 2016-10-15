@@ -148,6 +148,25 @@ public final class AutoFillAdjustChildHelper {
     }
 
     /**
+     * 获取当前实际可均分显示的itemCount最大数.
+     *
+     * @return
+     */
+    public int getDisplayItemCount() {
+        return mChildParams.x;
+    }
+
+    /**
+     * 获取parentView被均分显示childView后剩余的空间填充到ChildView之后作为额外margin的长度.<br>
+     * 不好理解请查看工具类{@link RecyclerViewUtil#computeSquareChildViewEdgeSize(int, int, int, boolean)}
+     *
+     * @return
+     */
+    public int getDisplayItemMarginEdgeSize() {
+        return mChildParams.y;
+    }
+
+    /**
      * 此方法在界面更新时生效,直接调用不会马上生效,设置后在下一次界面刷新时生效.<br>
      * 强制进行重新计算,当parentView的大小改变或者任何需要强制更新数据或者界面显示不正常时,可设置重新计算;<br>
      * 请注意,设置后并不会自动更新,当{@link #isComputeWhenBind()} = true时,可以通过{@code adapter.notifyDataSetChanged()}进行数据更新;<br>

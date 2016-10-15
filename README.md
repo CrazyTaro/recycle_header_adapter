@@ -21,12 +21,13 @@
 
 ## Gradle引用
 ```
-compile 'com.taro:headerrecycle:2.5.0'
+compile 'com.taro:headerrecycle:2.6.0'
 ```
 
 ---
 ## 更新说明
 2016-10-15
+
 1.新增recycleView相关的工具类
 
 2.新增动态调整itemCount数量的接口(不需要改动数据源)
@@ -37,9 +38,12 @@ compile 'com.taro:headerrecycle:2.5.0'
 
 5.优化调整了部分代码
 
+6.修复扩展adapterOption中不能获取自动计算结果显示的childView数量
+
 ---
 
 2016-09-08
+
 1.更新部分方法签名
 
 ```
@@ -520,6 +524,16 @@ private class RelyAdapterOption3 extends SimpleRecycleAdapter.SimpleAdapterOptio
      * 统一设置子控件的margin部分
      */
     public void setChildMarginForAll
+
+    /**
+     * 获取当前实际可均分显示的itemCount最大数.
+     */
+    public int getDisplayItemCount()
+
+    /**
+     * 获取parentView被均分显示childView后剩余的空间填充到ChildView之后作为额外margin的长度
+     */
+    public int getDisplayItemMarginEdgeSize()
 
     /**
      * 此方法在界面更新时生效,直接调用不会马上生效,设置后在下一次界面刷新时生效.

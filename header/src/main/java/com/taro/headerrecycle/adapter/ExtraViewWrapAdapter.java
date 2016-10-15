@@ -148,7 +148,7 @@ public class ExtraViewWrapAdapter extends BaseAdapter<RecyclerView.ViewHolder> {
         mIsFootViewEnable = isFootViewEnable;
         mHeaderCache = new HeaderFooterViewCache();
         mFooterCache = new HeaderFooterViewCache();
-        mInnerAdapter.registerAdapterDataObserver(mDataObserver);
+//        mInnerAdapter.registerAdapterDataObserver(mDataObserver);
     }
 
     /**
@@ -189,23 +189,23 @@ public class ExtraViewWrapAdapter extends BaseAdapter<RecyclerView.ViewHolder> {
         this.detachInnerAdapterToParent(getParentRecycleView());
     }
 
-    /**
-     * 反注册内部innerAdapter的数据更新observer
-     */
-    public void unregisterInnerAdatperDataObserver() {
-        if (mInnerAdapter != null) {
-            mInnerAdapter.unregisterAdapterDataObserver(mDataObserver);
-        }
-    }
-
-    /**
-     * 重新注册内部innerAdapter的数据更新observer
-     */
-    public void reregisterInnerAdapterDataObserver() {
-        if (mInnerAdapter != null) {
-            mInnerAdapter.registerAdapterDataObserver(mDataObserver);
-        }
-    }
+//    /**
+//     * 反注册内部innerAdapter的数据更新observer
+//     */
+//    public void unregisterInnerAdatperDataObserver() {
+//        if (mInnerAdapter != null) {
+//            mInnerAdapter.unregisterAdapterDataObserver(mDataObserver);
+//        }
+//    }
+//
+//    /**
+//     * 重新注册内部innerAdapter的数据更新observer
+//     */
+//    public void reregisterInnerAdapterDataObserver() {
+//        if (mInnerAdapter != null) {
+//            mInnerAdapter.registerAdapterDataObserver(mDataObserver);
+//        }
+//    }
 
     /**
      * 获取当前WrapAdapter位置在InnerAdapter中对应的位置,即除去headerView及refreshView<br>
@@ -605,34 +605,34 @@ public class ExtraViewWrapAdapter extends BaseAdapter<RecyclerView.ViewHolder> {
         }
     }
 
-    //重写adapterObserver,包装内部的adapter将会使用新的observer处理item
-    private RecyclerView.AdapterDataObserver mDataObserver = new RecyclerView.AdapterDataObserver() {
-        @Override
-        public void onChanged() {
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public void onItemRangeChanged(int positionStart, int itemCount) {
-            notifyItemRangeChanged(positionStart + getHeaderViewCount() + getRefreshingViewCount(), itemCount);
-        }
-
-        @Override
-        public void onItemRangeInserted(int positionStart, int itemCount) {
-            notifyItemRangeInserted(positionStart + getHeaderViewCount() + getRefreshingViewCount(), itemCount);
-        }
-
-        @Override
-        public void onItemRangeRemoved(int positionStart, int itemCount) {
-            notifyItemRangeRemoved(positionStart + getHeaderViewCount() + getRefreshingViewCount(), itemCount);
-        }
-
-        @Override
-        public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            int aboveViewsCountCount = getHeaderViewCount() + getRefreshingViewCount();
-            notifyItemRangeChanged(fromPosition + aboveViewsCountCount, toPosition + aboveViewsCountCount + itemCount);
-        }
-    };
+//    //重写adapterObserver,包装内部的adapter将会使用新的observer处理item
+//    private RecyclerView.AdapterDataObserver mDataObserver = new RecyclerView.AdapterDataObserver() {
+//        @Override
+//        public void onChanged() {
+//            notifyDataSetChanged();
+//        }
+//
+//        @Override
+//        public void onItemRangeChanged(int positionStart, int itemCount) {
+//            notifyItemRangeChanged(positionStart + getHeaderViewCount() + getRefreshingViewCount(), itemCount);
+//        }
+//
+//        @Override
+//        public void onItemRangeInserted(int positionStart, int itemCount) {
+//            notifyItemRangeInserted(positionStart + getHeaderViewCount() + getRefreshingViewCount(), itemCount);
+//        }
+//
+//        @Override
+//        public void onItemRangeRemoved(int positionStart, int itemCount) {
+//            notifyItemRangeRemoved(positionStart + getHeaderViewCount() + getRefreshingViewCount(), itemCount);
+//        }
+//
+//        @Override
+//        public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
+//            int aboveViewsCountCount = getHeaderViewCount() + getRefreshingViewCount();
+//            notifyItemRangeChanged(fromPosition + aboveViewsCountCount, toPosition + aboveViewsCountCount + itemCount);
+//        }
+//    };
 
     /**
      * 用于显示view的holder,没有实际的逻辑意义

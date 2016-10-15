@@ -6,8 +6,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
 import com.taro.headerrecycle.layoutmanager.HeaderSpanSizeLookup;
+import com.taro.headerrecycle.stickerheader.StickHeaderItemDecoration;
 
 import java.util.AbstractMap;
 import java.util.LinkedList;
@@ -15,10 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static android.R.string.no;
+
 /**
  * Created by taro on 16/5/19.
  */
-public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements StickHeaderItemDecoration.IStickerHeaderDecoration, HeaderSpanSizeLookup.ISpanSizeHandler {
+public class ExtraViewWrapAdapter extends BaseAdapter<RecyclerView.ViewHolder> {
     public static final int VIEW_HEADER_REFRESH = Integer.MAX_VALUE / 3;
     public static final int VIEW_FOOTER_LOAD_MORE = Integer.MIN_VALUE / 3;
 
@@ -182,6 +184,9 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
         if (mInnerAdapter != null && mInnerAdapter instanceof HeaderSpanSizeLookup.ISpanSizeHandler) {
             mISpanSizeLookup = (HeaderSpanSizeLookup.ISpanSizeHandler) mInnerAdapter;
         }
+
+        this.attachInnerAdapterToParent(getParentRecycleView());
+        this.detachInnerAdapterToParent(getParentRecycleView());
     }
 
     /**
@@ -381,6 +386,32 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
                 getHeaderViewCount() + getFooterViewCount() + mInnerAdapter.getItemCount();
     }
 
+    @Override
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        this.attachInnerAdapterToParent(recyclerView);
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        this.detachInnerAdapterToParent(recyclerView);
+    }
+
+    //将内部adapter绑定当前的parentView
+    private void attachInnerAdapterToParent(RecyclerView recyclerView) {
+        if (mInnerAdapter != null) {
+            mInnerAdapter.onAttachedToRecyclerView(recyclerView);
+        }
+    }
+
+    //将内部的adapter解绑定当前的parentView
+    private void detachInnerAdapterToParent(RecyclerView recyclerView) {
+        if (mInnerAdapter != null) {
+            mInnerAdapter.onDetachedFromRecyclerView(recyclerView);
+        }
+    }
+
     /**
      * 判断当前位置的view是否为头部view
      *
@@ -576,34 +607,28 @@ public class ExtraViewWrapAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     //重写adapterObserver,包装内部的adapter将会使用新的observer处理item
     private RecyclerView.AdapterDataObserver mDataObserver = new RecyclerView.AdapterDataObserver() {
-
         @Override
         public void onChanged() {
-            super.onChanged();
             notifyDataSetChanged();
         }
 
         @Override
         public void onItemRangeChanged(int positionStart, int itemCount) {
-            super.onItemRangeChanged(positionStart, itemCount);
             notifyItemRangeChanged(positionStart + getHeaderViewCount() + getRefreshingViewCount(), itemCount);
         }
 
         @Override
         public void onItemRangeInserted(int positionStart, int itemCount) {
-            super.onItemRangeInserted(positionStart, itemCount);
             notifyItemRangeInserted(positionStart + getHeaderViewCount() + getRefreshingViewCount(), itemCount);
         }
 
         @Override
         public void onItemRangeRemoved(int positionStart, int itemCount) {
-            super.onItemRangeRemoved(positionStart, itemCount);
             notifyItemRangeRemoved(positionStart + getHeaderViewCount() + getRefreshingViewCount(), itemCount);
         }
 
         @Override
         public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            super.onItemRangeMoved(fromPosition, toPosition, itemCount);
             int aboveViewsCountCount = getHeaderViewCount() + getRefreshingViewCount();
             notifyItemRangeChanged(fromPosition + aboveViewsCountCount, toPosition + aboveViewsCountCount + itemCount);
         }

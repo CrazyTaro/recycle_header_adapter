@@ -2,7 +2,6 @@ package com.taro.headerrecycle.adapter;
 
 import android.content.Context;
 import android.graphics.Point;
-import android.os.DeadObjectException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
@@ -18,12 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static android.R.attr.id;
-
 /**
  * Created by taro on 16/4/19.
  */
-public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecycleViewHolder> implements StickHeaderItemDecoration.IStickerHeaderDecoration, HeaderSpanSizeLookup.ISpanSizeHandler {
+public class HeaderRecycleAdapter<T, H> extends BaseAdapter<HeaderRecycleViewHolder> {
     private static final int FIRST_LOAD_ITEM_COUNT = Integer.MAX_VALUE;
 
     //分组数据列表
@@ -36,8 +33,6 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
     private IAdjustCountOption mAdjustOption = null;
     //通知参数更新的回调接口
     private OnHeaderParamsUpdateListener mParamsUpdateListener = null;
-    //与此Adapter绑定的recycleView
-    private RecyclerView mParentRecycle = null;
 
     private Point mRecyclePoint = new Point();
     private boolean mIsShowHeader = true;
@@ -271,12 +266,12 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
             int newCount = mAdjustOption.getAdjustCount();
             //当结果大于1时,通知再次更新数据;这里因为当item值大于1时,此次更新已经完成,recycleView不会再进行任何更新或者是创建数据,
             //所以当前的设置其实尽管item数量大于1但不会有任何的效果,除非重新刷新一次.
-            if (newCount > 1 || newCount <= 0) {
+            if (newCount != 1) {
                 //通过recycleView在刷新完界面后再重新刷新一次
-                mParentRecycle.post(new Runnable() {
+                this.getParentRecycleView().post(new Runnable() {
                     @Override
                     public void run() {
-                        mParentRecycle.requestLayout();
+                        getParentRecycleView().requestLayout();
                     }
                 });
             }
@@ -301,7 +296,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
             } else {
                 if (mLastAdjustCount != adjustCount) {
                     //当当前调整值与上一次调整值不同时再进行计算新的调整值
-                    int originalCount = RecyclerViewUtil.setRecyclerViewStateItemCount(adjustCount, this.getOriginalItemCount(), mParentRecycle);
+                    int originalCount = RecyclerViewUtil.setRecyclerViewStateItemCount(adjustCount, this.getOriginalItemCount(), this.getParentRecycleView());
                     Exception exception = null;
                     if (originalCount >= 0) {
                         //正常
@@ -318,13 +313,14 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
                                 exception.printStackTrace();
                                 break;
                             case RecyclerViewUtil.STATE_RECYCLERVIEW_STATE_UNINITIALIZED:
+                                //parentView中的state对象还没有被初始化...这个,一般不可能,这里只是以防万一
                                 exception = new NullPointerException("state has not been initialized, check if adapter was set to recyclerView");
                                 exception.printStackTrace();
                                 break;
                             default:
                                 break;
                         }
-                        //将调整值重置为初始值
+                        //任何的出错都将调整值重置为初始值
                         mLastAdjustCount = mCount;
                     }
                 } else {
@@ -334,29 +330,7 @@ public class HeaderRecycleAdapter<T, H> extends RecyclerView.Adapter<HeaderRecyc
         } else {
             mLastAdjustCount = mCount;
         }
-        return adjustCount;
-    }
-
-    @Override
-    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
-        super.onAttachedToRecyclerView(recyclerView);
-        mParentRecycle = recyclerView;
-    }
-
-    @Override
-    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
-        super.onDetachedFromRecyclerView(recyclerView);
-        mParentRecycle = null;
-    }
-
-    /**
-     * 获取当前此adapter绑定的recycleView
-     *
-     * @return
-     */
-    @Nullable
-    public RecyclerView getParentRecycleView() {
-        return mParentRecycle;
+        return mLastAdjustCount;
     }
 
     /**

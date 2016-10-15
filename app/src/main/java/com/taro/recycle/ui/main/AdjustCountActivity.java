@@ -41,6 +41,7 @@ public class AdjustCountActivity extends AppCompatActivity {
 
         //item单类型带头部adapter
         mHeaderOption = new HeaderAdapterOption(false, false);
+        mHeaderOption.setAdjustCount(5);
 
         mNormalAdapter = new SimpleRecycleAdapter<String>(this, mHeaderOption, childList);
         mRvDisplay.setLayoutManager(new LinearLayoutManager(this));
@@ -58,21 +59,22 @@ public class AdjustCountActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_adjust_default:
                 mHeaderOption.setAdjustCount(IAdjustCountOption.NO_USE_ADJUST_COUNT);
-                mRvDisplay.setAdapter(mNormalAdapter);
+//                mRvDisplay.setAdapter(mNormalAdapter);
                 break;
             case R.id.action_adjust_beyond:
                 mHeaderOption.setAdjustCount(Integer.MAX_VALUE);
-                mRvDisplay.setAdapter(mNormalAdapter);
+//                mRvDisplay.setAdapter(mNormalAdapter);
                 break;
             case R.id.action_adjust_zero:
                 mHeaderOption.setAdjustCount(0);
-                mRvDisplay.setAdapter(mNormalAdapter);
+//                mRvDisplay.setAdapter(mNormalAdapter);
                 break;
             case R.id.action_adjust_one_second:
                 mHeaderOption.setAdjustCount(mNormalAdapter.getOriginalItemCount() / 2);
-                mRvDisplay.setAdapter(mNormalAdapter);
+//                mRvDisplay.setAdapter(mNormalAdapter);
                 break;
         }
+        mNormalAdapter.notifyDataSetChanged();
         return super.onOptionsItemSelected(item);
     }
 }

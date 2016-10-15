@@ -17,7 +17,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.taro.headerrecycle.adapter.AdjustCountAdapterOption;
+import com.taro.headerrecycle.adapter.AutoFillAdjustChildAdapterOption;
+import com.taro.headerrecycle.adapter.AutoFillAdjustChildHelper;
 import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
 import com.taro.headerrecycle.adapter.HeaderRecycleViewHolder;
 import com.taro.headerrecycle.adapter.SimpleRecycleAdapter;
@@ -43,7 +44,8 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
 
     private int mMaxCount;
     private int mTempCount;
-    private AdjustCountAdapterOption mAdjustOption;
+    private RelyAdapterOption3 mSimpleOption;
+    private AutoFillAdjustChildAdapterOption mAdjustOption;
     private SimpleRecycleAdapter mAdapter;
     private List<String> mDataSource = null;
 
@@ -68,9 +70,15 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
 
         mAdjustOption = new RelyAdapterOption2();
         //设置为在bindView时进行计算;否则notifyDataSetChanged不一定会更新界面
-        mAdjustOption.setComputeWhen(AdjustCountAdapterOption.COMPUTE_WHEN_BIND_VIEW);
+        mAdjustOption.setComputeWhen(AutoFillAdjustChildAdapterOption.COMPUTE_WHEN_BIND_VIEW);
         mAdjustOption.setChildMarginForAll(0, 20, 0, 20);
-        mAdapter = new SimpleRecycleAdapter<String>(this, mAdjustOption, mDataSource);
+
+        mSimpleOption = new RelyAdapterOption3();
+        //设置为在bindView时进行计算;否则notifyDataSetChanged不一定会更新界面
+        mSimpleOption.getHelper().setComputeWhen(AutoFillAdjustChildAdapterOption.COMPUTE_WHEN_BIND_VIEW);
+        mSimpleOption.getHelper().setChildMarginForAll(0, 20, 0, 20);
+
+        mAdapter = new SimpleRecycleAdapter<String>(this, mSimpleOption, mDataSource);
 
         mRvRely.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         mRvRely.setAdapter(mAdapter);
@@ -94,8 +102,11 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
                     Toast.makeText(this, "小于0使用最大item数", Toast.LENGTH_SHORT).show();
                 }
                 //TODO:一定要先设置这个方法,否则更新recycleView时会因为缓存的view数量问题报错的.
-                mAdjustOption.setAdjustCount(mTempCount);
-                mAdjustOption.setIsAutoCompute(false);
+//                mAdjustOption.setAdjustCount(mTempCount);
+//                mAdjustOption.setIsAutoCompute(false);
+
+                mSimpleOption.getHelper().setAdjustCount(mTempCount, mSimpleOption);
+                mSimpleOption.getHelper().setIsAutoCompute(false);
                 mAdapter.notifyDataSetChanged();
                 break;
             case R.id.btn_rely_update_height:
@@ -111,8 +122,10 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
                             return;
                         }
                         RecyclerViewUtil.setViewWidthAndHeight(mRvRely, ViewGroup.LayoutParams.MATCH_PARENT, (int) dpx);
-                        mAdjustOption.requestForceRecompute();
-                        mAdjustOption.setIsAutoCompute(true);
+//                        mAdjustOption.requestForceRecompute();
+//                        mAdjustOption.setIsAutoCompute(true);
+                        mSimpleOption.getHelper().requestForceRecompute();
+                        mSimpleOption.getHelper().setIsAutoCompute(true);
                         mAdapter.notifyDataSetChanged();
                     }
                 }
@@ -124,15 +137,17 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
                 } else {
                     int viewMargin = Integer.valueOf(margin.toString());
                     float dpx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, viewMargin, this.getResources().getDisplayMetrics());
-                    mAdjustOption.setChildMarginForAll((int) dpx);
-                    mAdjustOption.requestForceRecompute();
+//                    mAdjustOption.setChildMarginForAll((int) dpx);
+//                    mAdjustOption.requestForceRecompute();
+                    mSimpleOption.getHelper().setChildMarginForAll((int) dpx);
+                    mSimpleOption.getHelper().requestForceRecompute();
                     mAdapter.notifyDataSetChanged();
                 }
                 break;
         }
     }
 
-    private class RelyAdapterOption2 extends AdjustCountAdapterOption<String> {
+    private class RelyAdapterOption2 extends AutoFillAdjustChildAdapterOption<String> {
         @Override
         public int getViewType(int position) {
             return 0;
@@ -150,6 +165,43 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
             ImageView itemView = (ImageView) holder.getRootView();
             itemView.setImageResource(R.drawable.bg);
             itemView.setScaleType(ImageView.ScaleType.FIT_XY);
+        }
+    }
+
+    private class RelyAdapterOption3 extends SimpleRecycleAdapter.SimpleAdapterOption<String> {
+        AutoFillAdjustChildHelper mAdjustHelper = null;
+
+        public RelyAdapterOption3() {
+            this.mAdjustHelper = new AutoFillAdjustChildHelper();
+        }
+
+        public AutoFillAdjustChildHelper getHelper() {
+            return mAdjustHelper;
+        }
+
+        @Override
+        public int getViewType(int position) {
+            return 0;
+        }
+
+        @Override
+        public void onCreateViewEverytime(@NonNull View itemView, @NonNull ViewGroup parentView, @NonNull HeaderRecycleAdapter adapter, int viewType) {
+            super.onCreateViewEverytime(itemView, parentView, adapter, viewType);
+            mAdjustHelper.computeOnCreateViewHolder(this, itemView, parentView);
+        }
+
+        @Override
+        public void setViewHolder(String itemData, int position, @NonNull HeaderRecycleViewHolder holder) {
+            mAdjustHelper.computeOnBindViewHolder(this, holder);
+
+            ImageView itemView = (ImageView) holder.getRootView();
+            itemView.setImageResource(R.drawable.bg);
+            itemView.setScaleType(ImageView.ScaleType.FIT_XY);
+        }
+
+        @Override
+        public int getLayoutId(int viewType) {
+            return R.layout.item_rely;
         }
     }
 

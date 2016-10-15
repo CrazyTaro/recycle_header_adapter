@@ -276,25 +276,7 @@ public abstract class AutoFillAdjustChildAdapterOption<T> extends SimpleRecycleA
         if (mIsRecompute | mIsResizeEdge) {
             if (mIsAutoCompute || mExpectCount < 0) {
                 mExpectCount = mChildParams.x;
-            }
-            mChildParams.y = RecyclerViewUtil.computeSquareChildViewEdgeSize(mParentParams.x, mParentParams.y, mExpectCount, mIsRelyOnWidth);
-            //不使用setAdjustCount()是因为该方法已经被重写了.
-            this.setInnerAdjustCount(mExpectCount);
-            mIsResizeEdge = false;
-            mIsRecompute = false;
-
-            //判断是否第一次计算加载,只会执行一次
-            if (mIsFirstTimeCompute) {
-                //任何第一次加载后edgeSize不小于0(有剩余空间时),都说明parentView之后有可能需要重新layout(某些情况下)
-                mIsNeedToRelayout = mChildParams.y > 0;
-                mIsFirstTimeCompute = false;
-            }
-            //当调整的数据超过自动计算后的结果;
-            //并且自动计算时存在剩余空间;
-            //并且在第一次加载时判断到需要进行layout
-            if (mExpectCount > mChildParams.y && mIsNeedToRelayout) {
-                mIsNeedToRelayout = false;
-                //通过parentView进行layout,必须也仅需一次
+            } else if (mExpectCount > mChildParams.x && mChildParams.y > 0) {
                 parentView.post(new Runnable() {
                     @Override
                     public void run() {
@@ -302,6 +284,31 @@ public abstract class AutoFillAdjustChildAdapterOption<T> extends SimpleRecycleA
                     }
                 });
             }
+            mChildParams.y = RecyclerViewUtil.computeSquareChildViewEdgeSize(mParentParams.x, mParentParams.y, mExpectCount, mIsRelyOnWidth);
+            //不使用setAdjustCount()是因为该方法已经被重写了.
+            this.setInnerAdjustCount(mExpectCount);
+            mIsResizeEdge = false;
+            mIsRecompute = false;
+
+//            //判断是否第一次计算加载,只会执行一次
+//            if (mIsFirstTimeCompute) {
+//                //任何第一次加载后edgeSize不小于0(有剩余空间时),都说明parentView之后有可能需要重新layout(某些情况下)
+//                mIsNeedToRelayout = mChildParams.y > 0;
+//                mIsFirstTimeCompute = false;
+//            }
+//            //当调整的数据超过自动计算后的结果;
+//            //并且自动计算时存在剩余空间;
+//            //并且在第一次加载时判断到需要进行layout
+//            if (mExpectCount > mChildParams.y && mIsNeedToRelayout) {
+//                mIsNeedToRelayout = false;
+//                //通过parentView进行layout,必须也仅需一次
+//                parentView.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        parentView.requestLayout();
+//                    }
+//                });
+//            }
         }
         RecyclerViewUtil.computeSquareChildViewLayoutParamsWithSet(childView, mChildMargin.left, mChildMargin.top, mChildMargin.right, mChildMargin.bottom,
                 mChildParams.y, mParentParams.x, mParentParams.y, mIsRelyOnWidth);

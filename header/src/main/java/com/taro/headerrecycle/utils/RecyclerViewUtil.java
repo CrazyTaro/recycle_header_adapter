@@ -132,13 +132,13 @@ public class RecyclerViewUtil {
      * @param childMarginTop      childView需要的margin-top
      * @param childMarginRight    childView需要的margin-right
      * @param childMarginBottom   childView需要的margin-bottom
-     * @param edgeSize            放置childView后父控件剩余的空间进行分配后的边缘的空间部分,可通过方法获取{@link #computeSquareViewEdgeSize(int, int, int, boolean)}
+     * @param edgeSize            放置childView后父控件剩余的空间进行分配后的边缘的空间部分,可通过方法获取{@link #computeSquareChildViewEdgeSize(int, int, int, boolean)}
      * @param parentWidth         父控件宽
      * @param parentHeight        父控件高
      * @param isRelyOnParentWidth 是否依赖于父控件的宽
      */
-    public static final void computeAndSetSquareViewLayoutParams(View childView, int childMarginLeft, int childMarginTop, int childMarginRight, int childMarginBottom,
-                                                                 int edgeSize, int parentWidth, int parentHeight, boolean isRelyOnParentWidth) {
+    public static final void computeSquareChildViewLayoutParamsWithSet(View childView, int childMarginLeft, int childMarginTop, int childMarginRight, int childMarginBottom,
+                                                                       int edgeSize, int parentWidth, int parentHeight, boolean isRelyOnParentWidth) {
         if (childView == null || parentWidth <= 0 || parentHeight <= 0) {
             return;
         }
@@ -159,8 +159,8 @@ public class RecyclerViewUtil {
         }
         int baseSize = isRelyOnParentWidth ? parentWidth : parentHeight;
         //设置子控件的大小
-        margin.width = computeSquareViewSize(baseSize, childMarginLeft, childMarginTop, childMarginRight, childMarginBottom, true);
-        margin.height = computeSquareViewSize(baseSize, childMarginLeft, childMarginTop, childMarginRight, childMarginBottom, false);
+        margin.width = computeSquareChildViewSize(baseSize, childMarginLeft, childMarginTop, childMarginRight, childMarginBottom, true);
+        margin.height = computeSquareChildViewSize(baseSize, childMarginLeft, childMarginTop, childMarginRight, childMarginBottom, false);
         //设置margin大小
         margin.setMargins(childMarginLeft, childMarginTop, childMarginRight, childMarginBottom);
         //根据依赖边对多余的空间部分调整添加到margin中
@@ -192,8 +192,8 @@ public class RecyclerViewUtil {
      * @param isRelyOnParentWidth 是否依赖于父控件的宽进行计算
      * @return
      */
-    public static final int computeSquareViewEdgeSize(int parentWidth, int parentHeight, int count,
-                                                      boolean isRelyOnParentWidth) {
+    public static final int computeSquareChildViewEdgeSize(int parentWidth, int parentHeight, int count,
+                                                           boolean isRelyOnParentWidth) {
         if (parentWidth > 0 && parentHeight > 0 && count > 0) {
             int baseSize = isRelyOnParentWidth ? parentWidth : parentHeight;
             int dividerSize = isRelyOnParentWidth ? parentHeight : parentWidth;
@@ -216,8 +216,8 @@ public class RecyclerViewUtil {
      * @return 返回值向下取整, 参数不合法返回-1
      */
 
-    public static final int computeSquareViewCountOnParentView(int parentWidth, int parentHeight,
-                                                               boolean isRelyOnParentWidth) {
+    public static final int computeSquareChildViewCountOnParentView(int parentWidth, int parentHeight,
+                                                                    boolean isRelyOnParentWidth) {
         if (parentWidth > 0 && parentHeight > 0) {
             int dividerSize = 0;
             int baseSize = 0;
@@ -248,8 +248,8 @@ public class RecyclerViewUtil {
      * @param isComputeWidth    是否计算childView的宽度,true返回的是childView的实际宽度,false返回childView的实际高度
      * @return
      */
-    public static final int computeSquareViewSize(int baseSize, int childMarginLeft, int childMarginTop,
-                                                  int childMarginRight, int childMarginBottom, boolean isComputeWidth) {
+    public static final int computeSquareChildViewSize(int baseSize, int childMarginLeft, int childMarginTop,
+                                                       int childMarginRight, int childMarginBottom, boolean isComputeWidth) {
         if (baseSize > 0) {
             //基于宽
             if (!isComputeWidth) {
@@ -259,7 +259,8 @@ public class RecyclerViewUtil {
                 //基于高
                 baseSize = baseSize - childMarginLeft - childMarginRight;
             }
-            return baseSize;
+            //当margin设置很大时,可能baseSize就是0了
+            return baseSize < 0 ? 0 : baseSize;
         } else {
             return 0;
         }
@@ -289,8 +290,8 @@ public class RecyclerViewUtil {
     /**
      * 计算子控件完全填充到父控件中自动适应大小.以最小边为基准,作为子控件的宽高大小(包含margin),自动计算需要填充的子控件大小并获取其相关的数据信息.<br>
      * 对于参数{@code edgeCountPoint}需要特别说明一下.该point对象中存放了两个整数数据,分别为edgeSize和childCount;其意义分如下<br>
-     * <li>edgeSize,用于添加到childView的marginTop/marginBottom中,用于平均分布到界面上(否则将挤在一起),详见方法{@link #computeSquareViewEdgeSize(int, int, int, boolean)}</li>
-     * <li>childCount,基于父控件的宽或者高计算另一边的相对依赖边的可分割数量,也就是最多可以显示的child的数量,详见方法{@link #computeSquareViewCountOnParentView(int, int, boolean)}</li>
+     * <li>edgeSize,用于添加到childView的marginTop/marginBottom中,用于平均分布到界面上(否则将挤在一起),详见方法{@link #computeSquareChildViewEdgeSize(int, int, int, boolean)}</li>
+     * <li>childCount,基于父控件的宽或者高计算另一边的相对依赖边的可分割数量,也就是最多可以显示的child的数量,详见方法{@link #computeSquareChildViewCountOnParentView(int, int, boolean)}</li>
      *
      * @param parentView       父控件
      * @param widthHeightPoint 用于存放父控件提供给子view显示的实际宽高大小;<br>
@@ -299,11 +300,11 @@ public class RecyclerViewUtil {
      *                         point.x=childCount,point.y=edgeSize;
      * @return 返回此次计算基于的父控件的宽或者高;true为基于宽计算;false为基于高计算
      */
-    public static final boolean computeSquareViewToFixParent(@NonNull View parentView, @NonNull Point widthHeightPoint, @NonNull Point edgeCountPoint) {
+    public static final boolean computeSquareChildViewParamsToFixParent(@NonNull View parentView, @NonNull Point widthHeightPoint, @NonNull Point edgeCountPoint) {
         widthHeightPoint = computeParentViewDrawArea(parentView, widthHeightPoint);
         boolean isRelyOnParentWidth = widthHeightPoint.x < widthHeightPoint.y;
-        int count = computeSquareViewCountOnParentView(widthHeightPoint.x, widthHeightPoint.y, isRelyOnParentWidth);
-        int edgeSize = computeSquareViewEdgeSize(widthHeightPoint.x, widthHeightPoint.y, count, isRelyOnParentWidth);
+        int count = computeSquareChildViewCountOnParentView(widthHeightPoint.x, widthHeightPoint.y, isRelyOnParentWidth);
+        int edgeSize = computeSquareChildViewEdgeSize(widthHeightPoint.x, widthHeightPoint.y, count, isRelyOnParentWidth);
         edgeCountPoint.set(edgeSize, count);
         return isRelyOnParentWidth;
     }

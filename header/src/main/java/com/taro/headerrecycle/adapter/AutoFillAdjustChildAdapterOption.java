@@ -19,7 +19,7 @@ import java.lang.annotation.RetentionPolicy;
  * <li>可简单地控制childView的部分布局(margin)
  * Created by taro on 16/10/13.
  */
-public abstract class AdjustCountAdapterOption<T> extends SimpleRecycleAdapter.SimpleAdapterOption<T> {
+public abstract class AutoFillAdjustChildAdapterOption<T> extends SimpleRecycleAdapter.SimpleAdapterOption<T> {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(value = {ERROR_CODE_HAPPEND_ON_BIND_PARAMS_NULL, ERROR_CODE_HAPPEND_ON_BIND_RELY_ON_INVALID, ERROR_CODE_HAPPEND_ON_CREATE_RELY_ON_INVALID, ERROR_CODE_HAPPEND_ON_CREATE_PARAMS_NULL})
     public @interface ErrorCode {
@@ -44,7 +44,8 @@ public abstract class AdjustCountAdapterOption<T> extends SimpleRecycleAdapter.S
     private int mComputeWhen = COMPUTE_WHEN_CREATE_VIEW;
     private int mExpectCount = NO_USE_ADJUST_COUNT;
 
-    private boolean mIsFinishRelayout = false;
+    private boolean mIsFirstTimeCompute = true;
+    private boolean mIsNeedToRelayout = false;
 
     private boolean mIsResizeEdge = false;
     private boolean mIsAutoCompute = true;
@@ -56,7 +57,7 @@ public abstract class AdjustCountAdapterOption<T> extends SimpleRecycleAdapter.S
 
     private OnComputeStatusErrorListener mErrorListener = null;
 
-    public AdjustCountAdapterOption() {
+    public AutoFillAdjustChildAdapterOption() {
         mParentParams = new Point();
         mChildParams = new Point();
         mChildMargin = new Rect();
@@ -147,6 +148,7 @@ public abstract class AdjustCountAdapterOption<T> extends SimpleRecycleAdapter.S
     }
 
     /**
+     * 此方法在界面更新时生效,直接调用不会马上生效,设置后在下一次界面刷新时生效.<br>
      * 强制进行重新计算,当parentView的大小改变或者任何需要强制更新数据或者界面显示不正常时,可设置重新计算;<br>
      * 请注意,设置后并不会自动更新,当{@link #isComputeWhenBind()} = true时,可以通过{@code adapter.notifyDataSetChanged()}进行数据更新;<br>
      * 当{@link #isComputeWhenCreate()} = false时,往往需要通过重新设置一次adapter来触发更新{@code rv.setAdapter(adapter)}
@@ -261,6 +263,7 @@ public abstract class AdjustCountAdapterOption<T> extends SimpleRecycleAdapter.S
         //是否强制重新进行计算,此处只计算parent的参数
         if (mIsRecompute) {
             RecyclerViewUtil.computeParentViewDrawArea(parentView, mParentParams);
+            mChildParams.x = RecyclerViewUtil.computeSquareChildViewCountOnParentView(mParentParams.x, mParentParams.y, mIsRelyOnWidth);
             if (!checkIfRelyOnValid()) {
                 if (mErrorListener != null) {
                     mErrorListener.onComputeStatusError(happenOn << 1 | 1);
@@ -271,7 +274,6 @@ public abstract class AdjustCountAdapterOption<T> extends SimpleRecycleAdapter.S
         }
         //当需要强制重新计算或者需要重新更新edgeSize时
         if (mIsRecompute | mIsResizeEdge) {
-            mChildParams.x = RecyclerViewUtil.computeSquareChildViewCountOnParentView(mParentParams.x, mParentParams.y, mIsRelyOnWidth);
             if (mIsAutoCompute || mExpectCount < 0) {
                 mExpectCount = mChildParams.x;
             }
@@ -280,6 +282,26 @@ public abstract class AdjustCountAdapterOption<T> extends SimpleRecycleAdapter.S
             this.setInnerAdjustCount(mExpectCount);
             mIsResizeEdge = false;
             mIsRecompute = false;
+
+            //判断是否第一次计算加载,只会执行一次
+            if (mIsFirstTimeCompute) {
+                //任何第一次加载后edgeSize不小于0(有剩余空间时),都说明parentView之后有可能需要重新layout(某些情况下)
+                mIsNeedToRelayout = mChildParams.y > 0;
+                mIsFirstTimeCompute = false;
+            }
+            //当调整的数据超过自动计算后的结果;
+            //并且自动计算时存在剩余空间;
+            //并且在第一次加载时判断到需要进行layout
+            if (mExpectCount > mChildParams.y && mIsNeedToRelayout) {
+                mIsNeedToRelayout = false;
+                //通过parentView进行layout,必须也仅需一次
+                parentView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        parentView.requestLayout();
+                    }
+                });
+            }
         }
         RecyclerViewUtil.computeSquareChildViewLayoutParamsWithSet(childView, mChildMargin.left, mChildMargin.top, mChildMargin.right, mChildMargin.bottom,
                 mChildParams.y, mParentParams.x, mParentParams.y, mIsRelyOnWidth);

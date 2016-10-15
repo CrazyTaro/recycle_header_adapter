@@ -13,10 +13,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
+ * 继承自{@link com.taro.headerrecycle.adapter.SimpleRecycleAdapter.SimpleAdapterOption},用于自动调整recycleView的item数量及childView的分布显示<br>
+ * <li>可实现调整任意的item数量;
+ * <li>可实现均等分割界面并规则地显示childView
+ * <li>可简单地控制childView的部分布局(margin)
  * Created by taro on 16/10/13.
  */
-
-public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.SimpleAdapterOption<T> {
+public abstract class AdjustCountAdapterOption<T> extends SimpleRecycleAdapter.SimpleAdapterOption<T> {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(value = {ERROR_CODE_HAPPEND_ON_BIND_PARAMS_NULL, ERROR_CODE_HAPPEND_ON_BIND_RELY_ON_INVALID, ERROR_CODE_HAPPEND_ON_CREATE_RELY_ON_INVALID, ERROR_CODE_HAPPEND_ON_CREATE_PARAMS_NULL})
     public @interface ErrorCode {
@@ -37,8 +40,12 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
 
     public static final int COMPUTE_WHEN_CREATE_VIEW = 0;
     public static final int COMPUTE_WHEN_BIND_VIEW = 1;
+    private boolean mIsMarginChanged = false;
     private int mComputeWhen = COMPUTE_WHEN_CREATE_VIEW;
     private int mExpectCount = NO_USE_ADJUST_COUNT;
+
+    private boolean mIsFinishRelayout = false;
+
     private boolean mIsResizeEdge = false;
     private boolean mIsAutoCompute = true;
     private boolean mIsRecompute = true;
@@ -49,7 +56,7 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
 
     private OnComputeStatusErrorListener mErrorListener = null;
 
-    public AdjustCountAdatperOption() {
+    public AdjustCountAdapterOption() {
         mParentParams = new Point();
         mChildParams = new Point();
         mChildMargin = new Rect();
@@ -71,7 +78,7 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
      * 但注意设置依然是正常保存的,只是是否会在计算起起作用而已;
      *
      * @param isRelyOnWidth true为依赖父控件宽度进行计算;false为依赖父控件高度进行计算;
-     * @return
+     * @return 返回当前设置是否可能在运行时生效, 此返回值只是一个参考值, 不会影响实际的一个参数设置
      */
     public boolean setIsRelyOnWidth(boolean isRelyOnWidth) {
         mIsRelyOnWidth = isRelyOnWidth;
@@ -99,7 +106,7 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
     }
 
     /**
-     * 统一设置子控件的margin部分
+     * 统一设置子控件的margin部分,使用此方法后,对界面的更新应该使用重置adapter来完成,因为只有createView的时候才会有效
      *
      * @param left
      * @param top
@@ -107,20 +114,51 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
      * @param bottom
      */
     public void setChildMarginForAll(int left, int top, int right, int bottom) {
-        mChildMargin.set(left, top, right, bottom);
+        if (mChildMargin.left != left || mChildMargin.top != top ||
+                mChildMargin.right != right || mChildMargin.bottom != bottom) {
+            mChildMargin.set(left, top, right, bottom);
+            mIsMarginChanged = true;
+        }
+    }
+
+    /**
+     * 统一设置子控件的margin部分,使用此方法后,对界面的更新应该使用重置adapter来完成,因为只有createView的时候才会有效
+     *
+     * @param margin
+     */
+    public void setChildMarginForAll(int margin) {
+        setChildMarginForAll(margin, margin, margin, margin);
+    }
+
+    public int getChildMarginLeft() {
+        return mChildMargin.left;
+    }
+
+    public int getChildMarginRight() {
+        return mChildMargin.right;
+    }
+
+    public int getChildMarginTop() {
+        return mChildMargin.top;
+    }
+
+    public int getChildMarginBottom() {
+        return mChildMargin.bottom;
     }
 
     /**
      * 强制进行重新计算,当parentView的大小改变或者任何需要强制更新数据或者界面显示不正常时,可设置重新计算;<br>
-     * 请注意,设置后并不会自动更新,当{@link #isComputeWhenBind()} = true时,可以通过{@code notifyDataSetChanged()}进行数据更新;<br>
-     * 当{@link #isComputeWhenCreate()} = false时,往往需要通过重新设置一次adapter来触发更新
+     * 请注意,设置后并不会自动更新,当{@link #isComputeWhenBind()} = true时,可以通过{@code adapter.notifyDataSetChanged()}进行数据更新;<br>
+     * 当{@link #isComputeWhenCreate()} = false时,往往需要通过重新设置一次adapter来触发更新{@code rv.setAdapter(adapter)}
      */
-    public void setForceRecompute() {
+    public void requestForceRecompute() {
         mIsRecompute = true;
     }
 
     /**
-     * 设置是否进行自动计算,若不进行自动计算,则需要通过手动设置adjustCount来调整item
+     * 默认为true;<br>
+     * 设置是否进行自动计算,若false为不进行自动计算,则需要通过手动设置adjustCount来调整item;<br>
+     * 若true为进行自动计算,会自动计算当前父控件需要填充的childView的数量,用户对adjustCount的设置将会无效,用户无法控件item数量
      *
      * @param isAutoCompute
      */
@@ -129,7 +167,7 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
     }
 
     /**
-     * 获取当前是否进行自动计算(item显示个数由parentView大小决定,不由用户决定)
+     * 获取当前是否进行自动计算(若自动计算则item显示个数由parentView大小决定,不由用户决定)
      *
      * @return
      */
@@ -138,7 +176,9 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
     }
 
     /**
-     * 设置计算设置childView layoutParams参数的时机,在createView中还是在bindView中进行操作
+     * 设置计算设置childView layoutParams参数的时机,在createView中还是在bindView中进行操作<br>
+     * 一般来说,对于同一个风格的计算不管在哪里计算都只会进行一次,adjustAdapterOption会缓存计算的结果;<br>
+     * 但是对View的大小及layoutParams的设置则是每一次都会进行的(因为无法确定此view是否已经被设置过,可能是来自缓存的view,也可能不是)
      *
      * @param computeWhen
      */
@@ -189,8 +229,11 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
             // 若初始值为0则不考虑,若初始值不为0至少会返回一个数据,这时就可以对数据进行重新的计算和修正了;
             super.setAdjustCount(NO_USE_ADJUST_COUNT);
         }
-        mExpectCount = adjustCount;
-        mIsResizeEdge = true;
+
+        if (adjustCount != this.getAdjustCount()) {
+            mExpectCount = adjustCount;
+            mIsResizeEdge = true;
+        }
     }
 
     @Override
@@ -207,13 +250,15 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
         }
     }
 
-    private void computeChildView(ViewGroup parentView, View childView, int happenOn) {
+    private void computeChildView(final ViewGroup parentView, View childView, int happenOn) {
+        //计算要求的基本信息
         if (parentView == null || childView == null) {
             if (mErrorListener != null) {
                 mErrorListener.onComputeStatusError(happenOn << 1);
             }
             return;
         }
+        //是否强制重新进行计算,此处只计算parent的参数
         if (mIsRecompute) {
             RecyclerViewUtil.computeParentViewDrawArea(parentView, mParentParams);
             if (!checkIfRelyOnValid()) {
@@ -224,17 +269,19 @@ public abstract class AdjustCountAdatperOption<T> extends SimpleRecycleAdapter.S
                 return;
             }
         }
+        //当需要强制重新计算或者需要重新更新edgeSize时
         if (mIsRecompute | mIsResizeEdge) {
-            mChildParams.x = RecyclerViewUtil.computeSquareViewCountOnParentView(mParentParams.x, mParentParams.y, mIsRelyOnWidth);
+            mChildParams.x = RecyclerViewUtil.computeSquareChildViewCountOnParentView(mParentParams.x, mParentParams.y, mIsRelyOnWidth);
             if (mIsAutoCompute || mExpectCount < 0) {
                 mExpectCount = mChildParams.x;
             }
-            mChildParams.y = RecyclerViewUtil.computeSquareViewEdgeSize(mParentParams.x, mParentParams.y, mExpectCount, mIsRelyOnWidth);
+            mChildParams.y = RecyclerViewUtil.computeSquareChildViewEdgeSize(mParentParams.x, mParentParams.y, mExpectCount, mIsRelyOnWidth);
+            //不使用setAdjustCount()是因为该方法已经被重写了.
             this.setInnerAdjustCount(mExpectCount);
             mIsResizeEdge = false;
             mIsRecompute = false;
         }
-        RecyclerViewUtil.computeAndSetSquareViewLayoutParams(childView, mChildMargin.left, mChildMargin.top, mChildMargin.right, mChildMargin.bottom,
+        RecyclerViewUtil.computeSquareChildViewLayoutParamsWithSet(childView, mChildMargin.left, mChildMargin.top, mChildMargin.right, mChildMargin.bottom,
                 mChildParams.y, mParentParams.x, mParentParams.y, mIsRelyOnWidth);
     }
 

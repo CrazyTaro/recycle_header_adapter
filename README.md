@@ -1,6 +1,9 @@
 #recycle_header_adapter
+这是一个可设置**带头部及分组显示item**的recycleAdapter,并提供**固定头部显示**,支持LinearLayout及GridLayout.
 
-这是一个可设置**带头部及分组显示item**的recycleAdapter,并提供**固定头部显示**,支持LinearLayout及GridLayout.仅需要添加数据和实现数据绑定,不需要对recycleView进行额外的修改或操作.同时头/尾部的添加支持任何adapter.
+同时支持不改变数据源的情况下动态更新item数量,还可以自动进行界面的计算从而向recycleView中填充所有childView.(详情查看后面使用或博客说明)
+
+仅需要添加数据和实现数据绑定,不需要对recycleView进行额外的修改或操作.同时头/尾部的添加支持任何adapter.
 
 ## 概述
 此项目包括三个内容
@@ -9,6 +12,8 @@
 - RecycleScrollHelper,滑动检测辅助类
 - StickHeaderItemDecoration,固定头部装饰类
 - ExtraViewWrapAdapter,添加额外头部尾部装饰类
+- IAdjustCountOption,动态调整itemCount数量的接口(不需要改动任何数据源)
+- RecyclerViewUtil,recycleView相关的一些工具方法(包括调整itemCount及自动计算均分parentView界面)
 
 > **有任何更新需要或者更好的欢迎提交issue或者联系`mg199303@163.com`,建议直接提交issue,会短期就查看一次的.谢谢~**
 
@@ -16,20 +21,39 @@
 
 ## Gradle引用
 ```
-compile 'com.taro:headerrecycle:1.0.0'
+compile 'com.taro:headerrecycle:2.5.0'
 ```
 
 ---
+## 更新说明
+2016-10-15
+1.新增recycleView相关的工具类
+2.新增动态调整itemCount数量的接口(不需要改动数据源)
+3.新增自动计算均分recycleView显示child的`AutoFillAdjustChildAdapterOption`(详情请查看使用说明)
+4.修复原有所有adapter不支持跟随activiy变更字体的问题
+5.优化调整了部分代码
 
-## 概述
-此项目包括三个内容
+---
 
-- HeaderRecycleAdapter,带头部的adapter
-- RecycleScrollHelper,滑动检测辅助类
-- StickHeaderItemDecoration,固定头部装饰类
-- ExtraViewWrapAdapter,添加头部尾部装饰类
+2016-09-08
+1.更新部分方法签名
 
-重要类源码在header模块中,app模块为相关的示例实用及引用.需要使用时可只导入header模块.
+```
+//纯粹命名不正确问题..
+RecycleViewOnClickHelper.unAttachRecycelView()
+-> detachRecycleView()
+```
+
+2.更新类名
+
+```
+//命名粗心了...
+RecycleVIewOnClickHelper
+-> RecycleViewOnClickHelper
+```
+
+3.更新部分逻辑,添加了接口
+**支持在`adapterOption`绑定界面与数据时动态地改变RecycleView需要显示的item数量.详见以下说明.**
 
 ---
 
@@ -38,6 +62,10 @@ compile 'com.taro:headerrecycle:1.0.0'
 - [RecycleViewScrollHelper--RecyclerView滑动事件检测的辅助类 ](http://blog.csdn.net/u011374875/article/details/51744448)
 - [HeaderRecycleAdapter--通用的带头部RecycleView.Adapter ](http://blog.csdn.net/u011374875/article/details/51744332)
 - [ExtraViewWrapperAdapter--添加额外头部尾部功能的装饰adapter](http://blog.csdn.net/u011374875/article/details/51882269)
+
+
+- [IAdjustCountOption--动态设置recycleView的itemCount(不需要修改数据源)](http://blog.csdn.net/u011374875/article/details/52823818)
+- [AutoFillAdjustChildAdapterOption--RecycleViewUtil之动态计算均分控件显示childView](http://blog.csdn.net/u011374875/article/details/52823868)
 
 ---
 
@@ -142,10 +170,8 @@ rv.setAdapter(adapter);
 ---
 
 #### SimpleRecycleAdapter(简单版)
-
-- `SimpleRecycleAdapter`是不带`header`的`Adapter`,其实跟普通的创建一个adapter的结果是没有什么区别的.
-- `SimpleRecycleAdapter`的使用方式与`HeaderRecycleAdapter`是一致的,创建数据源及数据绑定option即可.通过以上的示例我们知道只有分组的情况下会显示`Header`,所以`SimpleRecycleAdapter`内部其实只是覆盖和修改了部分设置.
-- 事实上,对一个可能需要显示头部某些情况下又不需要显示头部的情况来说,可以直接使用`HeaderRecycleAdapter`,通过设置adapter的属性`setIsShowHeader(boolean)`即可实现header的显示.`SimpleRecycleAdapter`更建议在仅普通显示不使用header的情况下使用(当然这种情况下完全可以不使用此adapter,使用普通的adapter即可.不过普通的adapter需要自己实现,使用simpleAdatper则不需要处理实现,仅需绑定数据了.)
+`SimpleRecycleAdapter`是不带`header`的`Adapter`,其实跟普通的创建一个adapter的结果是没有什么区别的.
+`SimpleRecycleAdapter`的使用方式与`HeaderRecycleAdapter`是一致的,创建数据源及数据绑定option即可.通过以上的示例我们知道只有分组的情况下会显示`Header`,所以`SimpleRecycleAdapter`内部其实只是覆盖和修改了部分设置.
 
 ---
 
@@ -181,7 +207,6 @@ rv.setAdapter(adapter);
 ---
 
 - 继承并完善`SimpleAdapterOption`
-
 对于不显示header的情况来说,直接实现`IHeaderAdatperOption`需要实现的方法会很多,某些方法也可能会导致误解错乱.
 所以提供了一个`SimpleAdapterOption`抽象类,实现了部分`IHeaderAdatperOption`方法,将需要实现的方法简化.建议在使用不带头部的adatper时继承此类实现相关的抽象方法会更好.
 
@@ -207,7 +232,7 @@ public class SimpleAdapterOption extends SimpleRecycleAdapter.SimpleAdapterOptio
 ---
 
 #### 示例图片
-![](https://github.com/CrazyTaro/RecycleViewAdapter/raw/master/screenshot/normalHeaderRecycleAdapter.gif)
+![](https://github.com/CrazyTaro/RecycleViewAdapter/raw/master/screenshot/multiHeaderSticker.gif)
 
 ---
 
@@ -269,7 +294,7 @@ mScrollHelper.attachToRecycleView(mRvDisplay);
 ---
 
 #### 示例图片
-请参考HeaderRecyleAdatper的图片(**请注意弹出的toast**))
+请参考HeaderRecyleAdatper的图片
 
 ---
 
@@ -278,7 +303,6 @@ mScrollHelper.attachToRecycleView(mRvDisplay);
 
 - 实现`IStickerHeaderDecoration`
 绘制固定头部时,`StickHeaderItemDecoration`完成固定头部的测量绘制,对于固定头部的获取/数据绑定等并不能进行处理,实际上该部分操作也不能由其处理,因此定义了一个接口,用于处理相关的固定头部的数据.
-这个接口是`StickHeaderItemDecoration`所必需的,一般来说对于带头部的Adapter才需要考虑是否需要显示固定头部.所以`HeaderRecycleAdapter`已经默认实现了这个接口,不想自己实现的情况下,直接创建一个`HeaderRecycleAdapter`作为参数即可.
 
 ```JAVA
 public interface IStickerHeaderDecoration {
@@ -297,7 +321,7 @@ public interface IStickerHeaderDecoration {
 
     //设置headerView显示的数据
     public void setHeaderView(int position, int headerViewTag, RecyclerView parent, View headerView);
-    
+
     //判断当前渲染的header是否与上一次渲染的header为同一分组,若是可以不再测量与绑定数据
     //lastDecoratedPosition,上一次渲染stickHeader的位置
     //nowDecoratingPosition,当前需要渲染stickHeader的位置
@@ -315,17 +339,9 @@ StickHeaderItemDecoration mStickDecoration = new StickHeaderItemDecoration(mNorm
 //设置recycleView与之绑定即可
 mRvDisplay.addItemDecoration(mSickDecoration);
 
-//使用 HeaderRecycleAdapter作为参数
-//new StickHedaerItemDecoration(new HeaderRecycleAdapter(params...));
-
 //也可以使用decoration的方法直接绑定recycleView
 //注意两者不同之处在于,对于直接使用recycleView绑定的,一个decoration可以绑定多个recylceView,只要确保不会出错就行;
-//如 mRv1.addItemDecoration(mSickDecoration); 
-//mRv2.addItemDecoration(mSickDecoration);
-//只要确定这个两个recycleView都可以使用这个decoration即可,同样的,切换adapter时decoration也是可以复用的.
-
 //反之使用decoration的方法进行关联的,decoration永远只会关联一个,不会关联多个
-//并且decoration会保留当前的recycleView的引用哦.
 //mStickDecoration.attachToRecyclerView(mRvDisplay);
 ```
 
@@ -362,7 +378,187 @@ ExtraViewWrapAdapter.setRefreshingViewStatus(true,true,rv);
 
 加载使用的view与刷新的view是相同的使用方式.
 
+--
+
+#### 示例图片
+![图片](https://github.com/CrazyTaro/RecycleViewAdapter/raw/master/screenshot/extraViewWrapperAdapter.png)
+
 ---
 
-## 示例图片
-![图片](https://github.com/CrazyTaro/RecycleViewAdapter/raw/master/screenshot/extraViewWrapperAdapter.png)
+### `IAdjustCountOption`接口
+对于动态修改显示item数量的功能,也集成到了`HeaderRecycleAdapter`中了.并为了方便使用,提供了一个新的接口.原有的对数据源进行分组的接口没有任何变化,主要就是为了兼容上个版本的使用方法.
+
+该接口只提供与调整item数量相关的方法,并不涉及其它任何方面的,是独立存在的.
+
+---
+
+#### 接口使用实例
+
+- 对于原本使用`HeaderRecycleAdapter`来说,需要使用调整item数量的功能只需要让adapterOption实现此接口即可;否则不需要作任何修改;
+- 对于使用`SimpleRecycleAdapter`简易版的adapter来说,`SimpleAdapterOption`已经默认实现此方法了,只要调接口的`setAdjustCount(int)`即可实现修改item数量的目的.
+
+以下举例说明接口的实现与使用;其实实现该接口非常简单,只需要让实现`IHeaderAdapterOption`接口的实现类**同时实现**此接口即可(内置的`SimpleAdapterOption`已经默认实现了此接口).
+
+```
+//同时实现IHeaderAdapterOption与IAdjustCountOption
+//原因下面会提及
+public class AdapterOption<T> implements IHeaderAdapterOption<T, Object>, IAdjustCountOption{
+    //定义缓存的变量
+    private int mAdjustItemCount=-1;
+    //实现相应的方法
+    public int getAdjustCount() {
+        return mAdjustCount;
+    }
+
+    public void setAdjustCount(int adjustCount) {
+        mAdjustCount = adjustCount;
+    }
+    //此方法在不需要使用时空实现即可
+    public void onCreateViewEverytime(@NonNull View itemView, @NonNull ViewGroup parentView, @NonNull HeaderRecycleAdapter adapter, int viewType) {
+    }
+}
+```
+
+---
+
+#### 示例GIF
+![](https://github.com/CrazyTaro/recycle_header_adapter/raw/master/screenshot/adjustCountOption.gif)
+
+---
+
+### AutoFillAdjustChildAdapterOption
+这是一个抽象类,并继承自于SimpleAdapterOption,所以这个类可以直接进行所有adapter的操作.
+可用于自动调整recycleView的item数量及childView的分布显示
+
+---
+
+#### 使用方法
+它的实现是很简单的.下面看看实现的例子,这个类封装完了方法让我们更关心于逻辑的实现.看起来就跟直接使用SimpleAdapterOption绑定数据而不进行任何其它操作一样简单~~
+
+```
+private class RelyAdapterOption2 extends AdjustCountAdapterOption<String> {
+    @Override
+    public int getViewType(int position) {
+        return 0;
+    }
+
+    @Override
+    public int getLayoutId(int viewType) {
+        return R.layout.item_rely;
+    }
+
+    @Override
+    public void setViewHolder(String itemData, int position, @NonNull HeaderRecycleViewHolder holder) {
+        super.setViewHolder(itemData, position, holder);
+
+        ImageView itemView = (ImageView) holder.getRootView();
+        itemView.setImageResource(R.drawable.bg);
+        itemView.setScaleType(ImageView.ScaleType.FIT_XY);
+    }
+}
+```
+
+---
+
+#### AutoFillAdjustChildHelper
+这个是在上述完成的功能中抽取出来的,独立的helper.完成的功能是与上述的adapterOption的功能是完全一样的.只是不集成在adapterOption中.
+
+---
+
+#### 使用方法(快速集成到adapterOption中)
+可以看一下简单的使用方法,速成集成到adapterOption中.
+
+```
+private class RelyAdapterOption3 extends SimpleRecycleAdapter.SimpleAdapterOption<String> {
+    AutoFillAdjustChildHelper mAdjustHelper = null;
+
+    public RelyAdapterOption3() {
+        this.mAdjustHelper = new AutoFillAdjustChildHelper();
+    }
+
+    //所有与`AutoFillAdjustChildAdapterOption`一样的操作可以从这里进行操作
+    public AutoFillAdjustChildHelper getHelper() {
+        return mAdjustHelper;
+    }
+
+    @Override
+    public void onCreateViewEverytime(@NonNull View itemView, @NonNull ViewGroup parentView, @NonNull HeaderRecycleAdapter adapter, int viewType) {
+        super.onCreateViewEverytime(itemView, parentView, adapter, viewType);
+        //直接调用这个方法,不需要去判断是否需要使用,已经在内部处理了
+        mAdjustHelper.computeOnCreateViewHolder(this, itemView, parentView);
+    }
+
+    @Override
+    public void setViewHolder(String itemData, int position, @NonNull HeaderRecycleViewHolder holder) {
+        //相同的直接调用这个方法
+        mAdjustHelper.computeOnBindViewHolder(this, holder);
+        //自己的绑定逻辑
+    }
+}
+```
+
+---
+
+#### 方法说明
+
+```
+    /**
+     * 设置计算出错的错误通知回调(错误回调接口没有进行测试,但是代码中是确保了出错时会调用,一般来说如果是正常的使用不会有回调事件的)
+     */
+    public void setOnComputeStatusErrorListener()
+
+    /**
+     * 设置当前需要依赖的边长.此方法会决定到实际运行时是否真的会计算出结果;
+     */
+    public boolean setIsRelyOnWidth()
+
+    /**
+     * 统一设置子控件的margin部分
+     */
+    public void setChildMarginForAll
+
+    /**
+     * 此方法在界面更新时生效,直接调用不会马上生效,设置后在下一次界面刷新时生效.
+     */
+    public void requestForceRecompute()
+
+    /**
+     * 设置是否进行自动计算
+     */
+    public void setIsAutoCompute(boolean isAutoCompute)
+
+    /**
+     * 设置计算设置childView layoutParams参数的时机
+     */
+    public void setComputeWhen
+
+    /**
+     * 设置希望调整为的item个数,但实际的个数是受到实际的情况影响,如果实际的数据达不到这个数量,会被调整
+     *
+     * @param adjustCount
+     */
+    public void setAdjustCount
+
+    /**
+     * 在 onCreateViewHolder 中进行计算并设置childView 的参数
+     */
+    public void computeOnCreateViewHolder
+
+    /**
+     * 在 onBindViewHolder 中进行计算并设置bindView 参数
+     */
+    public void computeOnBindViewHolder
+```
+
+---
+
+#### 示例GIF
+![](https://github.com/CrazyTaro/recycle_header_adapter/raw/master/screenshot/autoFillAdjustCount.gif)
+
+---
+
+## 最后
+感谢搜索引擎,帮我解决了大量的问题;
+感谢所有帮助我解决问题的博客;
+如果觉得有用,欢迎start,这将会给我更多的动力做得更好~谢谢~~
+

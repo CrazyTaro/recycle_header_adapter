@@ -17,7 +17,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.taro.headerrecycle.adapter.AdjustCountAdatperOption;
+import com.taro.headerrecycle.adapter.AdjustCountAdapterOption;
 import com.taro.headerrecycle.adapter.HeaderRecycleAdapter;
 import com.taro.headerrecycle.adapter.HeaderRecycleViewHolder;
 import com.taro.headerrecycle.adapter.SimpleRecycleAdapter;
@@ -37,14 +37,15 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
     Button mBtnItemCount;
     EditText mEtHeight;
     Button mBtnHeight;
-    Button mBtnAutoCount;
-    Button mBtnAutoHeight;
+    EditText mEtMargin;
+    Button mBtnMargin;
     RecyclerView mRvRely;
 
     private int mMaxCount;
     private int mTempCount;
-    private AdjustCountAdatperOption mAdjustOption;
+    private AdjustCountAdapterOption mAdjustOption;
     private SimpleRecycleAdapter mAdapter;
+    private List<String> mDataSource = null;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,36 +53,36 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
         setContentView(R.layout.activity_rely);
 
         mLlRoot = (LinearLayout) findViewById(R.id.ll_rely_root);
-        mEtItemCount = (EditText) findViewById(R.id.et_rely);
-        mBtnItemCount = (Button) findViewById(R.id.btn_rely_confirm);
+        mEtItemCount = (EditText) findViewById(R.id.et_rely_rv_item);
+        mBtnItemCount = (Button) findViewById(R.id.btn_rely_update_item);
         mEtHeight = (EditText) findViewById(R.id.et_rely_rv_height);
         mBtnHeight = (Button) findViewById(R.id.btn_rely_update_height);
-        mBtnAutoCount = (Button) findViewById(R.id.btn_rely_auto_update_5);
-        mBtnAutoHeight = (Button) findViewById(R.id.btn_rely_auto_update_40);
+        mBtnMargin = (Button) findViewById(R.id.btn_rely_update_margin);
+        mEtMargin = (EditText) findViewById(R.id.et_rely_rv_child_margin);
         mRvRely = (RecyclerView) findViewById(R.id.rv_rely);
 
-        List<String> list = new ArrayList<String>(100);
+        mDataSource = new ArrayList<String>(100);
         for (int i = 0; i < 10; i++) {
-            list.add("");
+            mDataSource.add("");
         }
 
         mAdjustOption = new RelyAdapterOption2();
         //设置为在bindView时进行计算;否则notifyDataSetChanged不一定会更新界面
-        mAdjustOption.setComputeWhen(AdjustCountAdatperOption.COMPUTE_WHEN_BIND_VIEW);
-        mAdapter = new SimpleRecycleAdapter<String>(this, mAdjustOption, list);
+        mAdjustOption.setComputeWhen(AdjustCountAdapterOption.COMPUTE_WHEN_BIND_VIEW);
+        mAdjustOption.setChildMarginForAll(0, 20, 0, 20);
+        mAdapter = new SimpleRecycleAdapter<String>(this, mAdjustOption, mDataSource);
 
         mRvRely.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         mRvRely.setAdapter(mAdapter);
         mBtnItemCount.setOnClickListener(this);
         mBtnHeight.setOnClickListener(this);
-        mBtnAutoCount.setOnClickListener(this);
-        mBtnAutoHeight.setOnClickListener(this);
+        mBtnMargin.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.btn_rely_confirm:
+            case R.id.btn_rely_update_item:
                 CharSequence number = mEtItemCount.getText();
                 if (TextUtils.isEmpty(number)) {
                     mTempCount = -1;
@@ -110,28 +111,28 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
                             return;
                         }
                         RecyclerViewUtil.setViewWidthAndHeight(mRvRely, ViewGroup.LayoutParams.MATCH_PARENT, (int) dpx);
-                        mAdjustOption.setForceRecompute();
+                        mAdjustOption.requestForceRecompute();
                         mAdjustOption.setIsAutoCompute(true);
                         mAdapter.notifyDataSetChanged();
                     }
                 }
                 break;
-            case R.id.btn_rely_auto_update_5:
-                mAdjustOption.setAdjustCount(5);
-                mAdjustOption.setIsAutoCompute(false);
-                mAdapter.notifyDataSetChanged();
-                break;
-            case R.id.btn_rely_auto_update_40:
-                float dpx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, this.getResources().getDisplayMetrics());
-                RecyclerViewUtil.setViewWidthAndHeight(mRvRely, ViewGroup.LayoutParams.MATCH_PARENT, (int) dpx);
-                mAdjustOption.setForceRecompute();
-                mAdjustOption.setIsAutoCompute(true);
-                mAdapter.notifyDataSetChanged();
+            case R.id.btn_rely_update_margin:
+                CharSequence margin = mEtMargin.getText();
+                if (TextUtils.isEmpty(margin)) {
+                    return;
+                } else {
+                    int viewMargin = Integer.valueOf(margin.toString());
+                    float dpx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, viewMargin, this.getResources().getDisplayMetrics());
+                    mAdjustOption.setChildMarginForAll((int) dpx);
+                    mAdjustOption.requestForceRecompute();
+                    mAdapter.notifyDataSetChanged();
+                }
                 break;
         }
     }
 
-    private class RelyAdapterOption2 extends AdjustCountAdatperOption<String> {
+    private class RelyAdapterOption2 extends AdjustCountAdapterOption<String> {
         @Override
         public int getViewType(int position) {
             return 0;
@@ -198,7 +199,7 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
             }
             if (mMaxCount <= 0) {
                 //计算基于宽/高可填充的item数量
-                mMaxCount = RecyclerViewUtil.computeSquareViewCountOnParentView(mParentParams.x, mParentParams.y, false);
+                mMaxCount = RecyclerViewUtil.computeSquareChildViewCountOnParentView(mParentParams.x, mParentParams.y, false);
             }
             //若当前的指定item数量不合法,使用可填充的最大item数量代替
             if (mTempCount < 0 || mTempCount > mMaxCount) {
@@ -206,13 +207,13 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
             }
             //根据标志或数据判断是否需要重新计算一次界面item之前的边距值(即额外的margin部分)
             if (mIsRecompute || mChildParams.y == Integer.MIN_VALUE) {
-                mChildParams.y = RecyclerViewUtil.computeSquareViewEdgeSize(mParentParams.x, mParentParams.y, mTempCount, false);
+                mChildParams.y = RecyclerViewUtil.computeSquareChildViewEdgeSize(mParentParams.x, mParentParams.y, mTempCount, false);
                 mIsRecompute = false;
                 //更新调整的界面item数量
                 this.setAdjustCount(mTempCount);
             }
             //设置每一个创建itemView的参数,宽高/margin/额外的margin部分
-            RecyclerViewUtil.computeAndSetSquareViewLayoutParams(holder.getRootView(), 0, 0, 0, 0, mChildParams.y, mParentParams.x, mParentParams.y, false);
+            RecyclerViewUtil.computeSquareChildViewLayoutParamsWithSet(holder.getRootView(), 0, 0, 0, 0, mChildParams.y, mParentParams.x, mParentParams.y, false);
 
 
             ImageView itemView = (ImageView) holder.getRootView();
@@ -238,7 +239,7 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
 //            }
 //            if (mMaxCount <= 0) {
 //                //计算基于宽/高可填充的item数量
-//                mMaxCount = RecyclerViewUtil.computeSquareViewCountOnParentView(mParentParams.x, mParentParams.y, false);
+//                mMaxCount = RecyclerViewUtil.computeSquareChildViewCountOnParentView(mParentParams.x, mParentParams.y, false);
 //            }
 //            //若当前的指定item数量不合法,使用可填充的最大item数量代替
 //            if (mTempCount < 0 || mTempCount > mMaxCount) {
@@ -246,13 +247,13 @@ public class RelyParentActivity extends AppCompatActivity implements View.OnClic
 //            }
 //            //根据标志或数据判断是否需要重新计算一次界面item之前的边距值(即额外的margin部分)
 //            if (mIsRecompute || mChildParams.y == Integer.MIN_VALUE) {
-//                mChildParams.y = RecyclerViewUtil.computeSquareViewEdgeSize(mParentParams.x, mParentParams.y, mTempCount, false);
+//                mChildParams.y = RecyclerViewUtil.computeSquareChildViewEdgeSize(mParentParams.x, mParentParams.y, mTempCount, false);
 //                mIsRecompute = false;
 //                //更新调整的界面item数量
 //                this.setAdjustCount(mTempCount);
 //            }
 //            //设置每一个创建itemView的参数,宽高/margin/额外的margin部分
-//            RecyclerViewUtil.computeAndSetSquareViewLayoutParams(itemView, 0, 0, 0, 0, mChildParams.y, mParentParams.x, mParentParams.y, false);
+//            RecyclerViewUtil.computeSquareChildViewLayoutParamsWithSet(itemView, 0, 0, 0, 0, mChildParams.y, mParentParams.x, mParentParams.y, false);
         }
     }
 }

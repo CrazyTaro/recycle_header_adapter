@@ -6,14 +6,14 @@
               android:orientation="vertical">
 
     <EditText
-        android:id="@+id/et_rely"
+        android:id="@+id/et_rely_rv_item"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="请输入自定义的item个数"
         android:inputType="number"/>
 
     <Button
-        android:id="@+id/btn_rely_confirm"
+        android:id="@+id/btn_rely_update_item"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="更新item个数"/>
@@ -31,21 +31,23 @@
         android:layout_height="wrap_content"
         android:text="更新recycleView高度并自动计算item"/>
 
-    <Button
-        android:id="@+id/btn_rely_auto_update_5"
+    <EditText
+        android:id="@+id/et_rely_rv_child_margin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="更新item个数为5"/>
+        android:hint="请输入childView的统一margin"
+        android:inputType="number"/>
 
     <Button
-        android:id="@+id/btn_rely_auto_update_40"
+        android:id="@+id/btn_rely_update_margin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="更新recycleView高度为40"/>
+        android:text="更新childView的margin大小"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_rely"
         android:layout_width="match_parent"
-        android:layout_height="50dp"/>
+        android:layout_height="50dp"
+        android:background="#ff9900"/>
 
 </LinearLayout>

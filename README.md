@@ -70,10 +70,8 @@ RecycleVIewOnClickHelper
 - [RecycleViewScrollHelper--RecyclerView滑动事件检测的辅助类 ](http://blog.csdn.net/u011374875/article/details/51744448)
 - [HeaderRecycleAdapter--通用的带头部RecycleView.Adapter ](http://blog.csdn.net/u011374875/article/details/51744332)
 - [ExtraViewWrapperAdapter--添加额外头部尾部功能的装饰adapter](http://blog.csdn.net/u011374875/article/details/51882269)
-
-
-- [IAdjustCountOption--动态设置recycleView的itemCount(不需要修改数据源)](http://blog.csdn.net/u011374875/article/details/52823818)
-- [AutoFillAdjustChildAdapterOption--RecycleViewUtil之动态计算均分控件显示childView](http://blog.csdn.net/u011374875/article/details/52823868)
+- [IAdjustCountOption--动态设置recycleView的itemCount(不需要修改数据源)](http://blog.csdn.net/u011374875/article/details/52833359)
+- [AutoFillAdjustChildAdapterOption--RecycleViewUtil之动态计算均分控件显示childView](http://blog.csdn.net/u011374875/article/details/52833281)
 
 ---
 
@@ -329,7 +327,7 @@ public interface IStickerHeaderDecoration {
 
     //设置headerView显示的数据
     public void setHeaderView(int position, int headerViewTag, RecyclerView parent, View headerView);
-
+    
     //判断当前渲染的header是否与上一次渲染的header为同一分组,若是可以不再测量与绑定数据
     //lastDecoratedPosition,上一次渲染stickHeader的位置
     //nowDecoratingPosition,当前需要渲染stickHeader的位置
@@ -524,16 +522,16 @@ private class RelyAdapterOption3 extends SimpleRecycleAdapter.SimpleAdapterOptio
      * 统一设置子控件的margin部分
      */
     public void setChildMarginForAll
-
+    
     /**
      * 获取当前实际可均分显示的itemCount最大数.
      */
-    public int getDisplayItemCount()
+    public int getDisplayItemCount() 
 
     /**
      * 获取parentView被均分显示childView后剩余的空间填充到ChildView之后作为额外margin的长度
      */
-    public int getDisplayItemMarginEdgeSize()
+    public int getDisplayItemMarginEdgeSize() 
 
     /**
      * 此方法在界面更新时生效,直接调用不会马上生效,设置后在下一次界面刷新时生效.

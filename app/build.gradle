@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.1'
+        classpath 'com.android.tools.build:gradle:2.2.2'
     }
 }
 apply plugin: 'com.android.application'
@@ -32,14 +32,14 @@ android {
     signingConfigs {
         release {}
         debug {
-            storeFile file(project.("sign.file"))
-            println(storeFile)
-            storePassword project.property("sign.file.storePassword")
-            println(storePassword)
-            keyAlias project.property("sign.file.keyAlias")
-            println(keyAlias)
-            keyPassword project.property("sign.file.keyPassword")
-            println(keyPassword)
+//            storeFile file(project.("sign.file"))
+//            println(storeFile)
+//            storePassword project.property("sign.file.storePassword")
+//            println(storePassword)
+//            keyAlias project.property("sign.file.keyAlias")
+//            println(keyAlias)
+//            keyPassword project.property("sign.file.keyPassword")
+//            println(keyPassword)
         }
     }
 
@@ -50,7 +50,6 @@ android {
         }
 
         debug {
-            signingConfig signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
